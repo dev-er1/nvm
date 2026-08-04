@@ -2,6 +2,10 @@
 name = "libnvm"
 version = "0.1.0"
 edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.96.0"
+description = "Library for using NVM."
+repository = "https://github.com/dev-er1/nvm"
 
 [dependencies]
 nvm-core = { path = "../nvm-core", version = "0.1.0" }
