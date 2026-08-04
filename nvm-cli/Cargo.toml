@@ -1,0 +1,12 @@
+[package]
+name = "nvm-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+argparser = "0.1.22"
+libnvm = { path = "../libnvm", version = "0.1.0" }
+
+[[bin]]
+name = "nvm"
+path = "src/main.rs"

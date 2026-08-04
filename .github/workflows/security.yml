@@ -1,0 +1,26 @@
+name: Security
+
+on:
+  push:
+    paths:
+      - ".github/workflows/security.yml"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "**/audit.toml"
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: Cargo audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit Rust Dependencies
+        uses: actions-rust-lang/audit@v1
