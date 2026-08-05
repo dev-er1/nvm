@@ -96,6 +96,7 @@ fn error_kind(err: &ParseError) -> CLIErrorKind {
             CLIErrorKind::UnexpectedValue(flag.clone(), value.clone())
         }
         ParseError::MissingValue(flag) => CLIErrorKind::MissingValueForFlag(flag.clone()),
+        ParseError::InvalidValue { flag, .. } => CLIErrorKind::InvalidValue(flag.clone()),
     }
 }
 
@@ -108,6 +109,7 @@ fn offending_token(err: &ParseError) -> &str {
         ParseError::UnknownFlag(flag) => flag,
         ParseError::UnexpectedValue { flag, .. } => flag,
         ParseError::MissingValue(flag) => flag,
+        ParseError::InvalidValue { flag, ..} => flag,
     }
 }
 

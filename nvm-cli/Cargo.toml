@@ -8,7 +8,7 @@ description = "NVM CLI."
 repository = "https://github.com/dev-er1/nvm"
 
 [dependencies]
-argparser = "0.1.22"
+argparser = "0.2.1"
 libnvm = { path = "../libnvm", version = "0.1.0" }
 
 [[bin]]

@@ -58,6 +58,14 @@ pub enum CLIErrorKind {
         // Аргумент.
         String,
     ),
+
+    /// Неправильное значение.
+    /// 
+    /// Например, флаг ожидает [`u64`], а получает отрицательное число.
+    InvalidValue(
+        /// Имя флага.
+        String,
+    )
 }
 
 impl Display for CLIErrorKind {
@@ -71,6 +79,7 @@ impl Display for CLIErrorKind {
             Self::MissingValueForFlag(flag) => write!(f, "missing value for flag '{flag}'"),
             Self::MissingValueForCommand(cmd) => write!(f, "missing value for command '{cmd}'"),
             Self::UnexpectedArgument(arg) => write!(f, "unexpected argument: '{arg}'"),
+            Self::InvalidValue(flag) => write!(f, "invalid value for flag '{flag}'"),
         }
     }
 }

@@ -34,9 +34,9 @@ checksum = "940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000"
 
 [[package]]
 name = "argparser"
-version = "0.1.22"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8811f14147fdf5419a5dedb7fbfb01f7b76ff4fcc4884d835f9d5092f6df410d"
+checksum = "05695fe30f3089fec6e2045df319f0c610c52f03ae7949c958e7a0e4af44cca6"
 
 [[package]]
 name = "autocfg"
