@@ -16,7 +16,7 @@ fn program(width: u64, height: u64, iters: u64) -> Vec<Instruction> {
             let cr = -2.0 + xx as f64 * 3.0 / width as f64;
             let ci = -1.0 + yy as f64 * 2.0 / height as f64;
             asm.push(i2(Op::MOVE, reg(0), fimm(0.0)));
-            asm.push(i2(Op::MOVE, reg(1), fimm(0.0))); 
+            asm.push(i2(Op::MOVE, reg(1), fimm(0.0)));
             asm.push(i2(Op::MOVE, reg(2), fimm(cr)));
             asm.push(i2(Op::MOVE, reg(3), fimm(ci)));
             asm.push(i2(Op::MOVE, reg(4), fimm(4.0)));
