@@ -54,6 +54,7 @@ fn parse_help(args: &[String]) -> Result<Command, CLIError> {
 
 fn parse_run(args: &[String]) -> Result<Command, CLIError> {
     let matches = ArgumentParser::new()
+        .typed_value::<usize>("memory", &["--memory"])
         .flag("time", &["--time"])
         .parse(argparser::str::Source::from_iter(args.iter().cloned()));
 
@@ -86,6 +87,7 @@ fn parse_run(args: &[String]) -> Result<Command, CLIError> {
     Ok(Command::Run {
         file: file.to_string(),
         time: matches.flag("time"),
+        memory: matches.get_one::<usize>("memory").copied(),
     })
 }
 
@@ -109,7 +111,7 @@ fn offending_token(err: &ParseError) -> &str {
         ParseError::UnknownFlag(flag) => flag,
         ParseError::UnexpectedValue { flag, .. } => flag,
         ParseError::MissingValue(flag) => flag,
-        ParseError::InvalidValue { flag, ..} => flag,
+        ParseError::InvalidValue { flag, .. } => flag,
     }
 }
 

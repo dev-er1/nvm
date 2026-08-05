@@ -12,13 +12,16 @@ pub enum Command {
         cmd: Option<String>,
     },
 
-    /// `nvm run <file> [--time]`
+    /// `nvm run <file> [--time] [--memory <bytes]`
     Run {
         /// Путь к файлу, который нужно выполнить.
         file: String,
 
         /// Если `true` — выводить время выполнения.
         time: bool,
+
+        /// Сколько выделить памяти на выполнение программы.
+        memory: Option<usize>,
     },
 }
 
@@ -59,9 +62,15 @@ pub const COMMAND: &[CommandInfo] = &[
         name: "run",
         usage: "run <file>",
         description: "Execute NVM Bytecode.",
-        flags: &[FlagInfo {
-            usage: "--time",
-            description: "Show execution time.",
-        }],
+        flags: &[
+            FlagInfo {
+                usage: "--time",
+                description: "Show execution time.",
+            },
+            FlagInfo {
+                usage: "--memory <bytes>",
+                description: "Allocate the specified amount of memory for program execution.",
+            },
+        ],
     },
 ];

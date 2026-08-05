@@ -60,12 +60,12 @@ pub enum CLIErrorKind {
     ),
 
     /// Неправильное значение.
-    /// 
+    ///
     /// Например, флаг ожидает [`u64`], а получает отрицательное число.
     InvalidValue(
         /// Имя флага.
         String,
-    )
+    ),
 }
 
 impl Display for CLIErrorKind {

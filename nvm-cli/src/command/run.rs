@@ -5,11 +5,12 @@ use std::{io::Read, time::Instant};
 
 use libnvm::{BytecodeSource, NVMError, NVMErrorKind, NVMl};
 
-use crate::ansi::ansi_supported;
+use crate::{ansi::ansi_supported, ansiprint};
 
 pub struct RunArguments {
     pub file: String,
     pub time: bool,
+    pub memory: Option<usize>,
 }
 
 pub fn run(args: RunArguments) -> i32 {
@@ -31,7 +32,11 @@ pub fn run(args: RunArguments) -> i32 {
         BytecodeSource::File(args.file.into())
     };
 
-    let nvm = NVMl::new(None);
+    let nvm = if let Some(memory) = args.memory {
+        NVMl::with_memory_size(None, memory)
+    } else {
+        NVMl::new(None)
+    };
 
     if let Err(e) = nvm.run(source) {
         report_error(e);
@@ -39,7 +44,10 @@ pub fn run(args: RunArguments) -> i32 {
     }
 
     if args.time {
-        println!("Execution time: {:?}.", start.elapsed());
+        ansiprint!(
+            "\x1b[1;36mFinished\x1b[0m in \x1b[1m{:?}\x1b[0m",
+            start.elapsed()
+        );
     }
 
     0

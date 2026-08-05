@@ -16,6 +16,6 @@ pub fn route(cmd: Command) -> i32 {
             dont_show_banner,
             cmd,
         }),
-        Command::Run { file, time } => run::run(RunArguments { file, time }),
+        Command::Run { file, time, memory } => run::run(RunArguments { file, time, memory }),
     }
 }

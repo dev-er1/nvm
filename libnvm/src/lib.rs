@@ -28,7 +28,7 @@ pub enum ExecuteVariant {
 
     /// Исполнение на основе jump table (реализовано
     /// [здесь](nvm_core::vm::jumptable)).
-    Jumptable,
+    JumpTable,
 }
 
 /// Источник байт-кода для [`NVMl::run`].
@@ -59,9 +59,11 @@ impl NVMl {
     }
 
     /// Задаёт размер памяти ВМ в байтах.
-    pub fn with_memory_size(mut self, memory_size: usize) -> Self {
-        self.memory_size = memory_size;
-        self
+    pub fn with_memory_size(execute_option: Option<ExecuteVariant>, memory_size: usize) -> Self {
+        Self {
+            execute_option: execute_option.unwrap_or_default(),
+            memory_size,
+        }
     }
 
     /// Исполняет байт-код из переданного [`BytecodeSource`].
@@ -86,7 +88,7 @@ impl NVMl {
             ExecuteVariant::Match => vm
                 .match_execute()
                 .map_err(|e| NVMError::new(NVMErrorKind::VMError(e), None, false))?,
-            ExecuteVariant::Jumptable => vm
+            ExecuteVariant::JumpTable => vm
                 .jumptable_execute()
                 .map_err(|e| NVMError::new(NVMErrorKind::VMError(e), None, false))?,
         }
