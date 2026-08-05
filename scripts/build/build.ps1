@@ -4,4 +4,4 @@ echo "    Checking that CI passes..."
 echo "    Cleaning..."
 cargo clean;
 cargo build --release
-Copy-Item ../../target/release/nvm.exe ../../../
+Copy-Item ../../target/release/nvm.exe ../../.
