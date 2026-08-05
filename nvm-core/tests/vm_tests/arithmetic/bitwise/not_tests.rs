@@ -91,7 +91,7 @@ fn not_register_sources() {
         operand3: None,
     }];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 0xFFFF_FFFF_FFFF_00FF);
     assert_eq!(nvm.registers[Register(1)], 0xFF00);
 }

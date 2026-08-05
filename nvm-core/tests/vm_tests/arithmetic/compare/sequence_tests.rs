@@ -72,7 +72,7 @@ fn compare_chain_ieq_slt_uge() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 0);
     assert_eq!(nvm.registers[Register(3)], 1);
     assert_eq!(nvm.registers[Register(4)], 1);
@@ -108,7 +108,7 @@ fn compare_float_chain() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 0);
     assert_eq!(nvm.registers[Register(3)], 1);
     assert_eq!(nvm.registers[Register(4)], 1);
@@ -133,7 +133,7 @@ fn compare_mixed_int_and_float() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 1);
     assert_eq!(nvm.registers[Register(1)], 0);
 }

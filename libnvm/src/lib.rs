@@ -3,7 +3,7 @@
 //! `libnvm` — крейт для использования NVM.
 //!
 //! Основная точка входа — [`NVMl`]. Он принимает байт-код через
-//! [`BytecodeSource`] и исполняет его с выбранным [`ExecuteVariant`].
+//! [`BytecodeSource`] и исполняет его.
 use std::path::PathBuf;
 
 use nvm_core::{
@@ -19,19 +19,6 @@ pub use nvm_core::isa::instruction::Instruction;
 /// Размер памяти ВМ по умолчанию (в байтах).
 pub const DEFAULT_MEMORY_SIZE: usize = 64 * 1024;
 
-/// Вариант исполнения байт-кода.
-#[derive(Default, Debug, Clone, Copy)]
-pub enum ExecuteVariant {
-    /// Исполнение на основе `match` (реализовано
-    /// [здесь](nvm_core::vm::default)).
-    #[default]
-    Match,
-
-    /// Исполнение на основе jump table (реализовано
-    /// [здесь](nvm_core::vm::jumptable)).
-    JumpTable,
-}
-
 /// Источник байт-кода для [`NVMl::run`].
 pub enum BytecodeSource {
     /// Путь к файлу в формате NVM Bytecode (`.nb`).
@@ -45,26 +32,20 @@ pub enum BytecodeSource {
 }
 
 pub struct NVMl {
-    pub execute_option: ExecuteVariant,
-
     /// Размер памяти ВМ в байтах.
     pub memory_size: usize,
 }
 
 impl NVMl {
-    pub fn new(execute_option: Option<ExecuteVariant>) -> Self {
+    pub fn new() -> Self {
         Self {
-            execute_option: execute_option.unwrap_or_default(),
             memory_size: DEFAULT_MEMORY_SIZE,
         }
     }
 
     /// Задаёт размер памяти ВМ в байтах.
-    pub fn with_memory_size(execute_option: Option<ExecuteVariant>, memory_size: usize) -> Self {
-        Self {
-            execute_option: execute_option.unwrap_or_default(),
-            memory_size,
-        }
+    pub fn with_memory_size(memory_size: usize) -> Self {
+        Self { memory_size }
     }
 
     /// Исполняет байт-код из переданного [`BytecodeSource`].
@@ -85,15 +66,15 @@ impl NVMl {
 
         let mut vm = NVM::from_program_and_memory(instructions, NVMMemory::new(self.memory_size));
 
-        match self.execute_option {
-            ExecuteVariant::Match => vm
-                .match_execute()
-                .map_err(|e| NVMError::new(NVMErrorKind::VMError(e), None, false))?,
-            ExecuteVariant::JumpTable => vm
-                .jumptable_execute()
-                .map_err(|e| NVMError::new(NVMErrorKind::VMError(e), None, false))?,
-        }
+        vm.run()
+            .map_err(|e| NVMError::new(NVMErrorKind::VMError(e), None, false))?;
 
         Ok(())
+    }
+}
+
+impl Default for NVMl {
+    fn default() -> Self {
+        Self::new()
     }
 }

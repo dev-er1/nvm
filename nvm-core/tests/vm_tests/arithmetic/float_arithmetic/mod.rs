@@ -31,6 +31,6 @@ pub fn get_result(opcode: OperationCode, a: f64, b: f64) -> f64 {
             kind: OperandKind::Immediate(b.to_bits()),
         }),
     }];
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     f64::from_bits(nvm.registers[Register(0)])
 }

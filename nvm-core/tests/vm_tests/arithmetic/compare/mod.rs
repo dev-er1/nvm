@@ -30,7 +30,7 @@ pub fn get_int(opcode: OperationCode, a: u64, b: u64) -> u64 {
             kind: OperandKind::Immediate(b),
         }),
     }];
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     nvm.registers[Register(0)]
 }
 
@@ -48,6 +48,6 @@ pub fn get_float(opcode: OperationCode, a: f64, b: f64) -> u64 {
             kind: OperandKind::Immediate(b.to_bits()),
         }),
     }];
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     nvm.registers[Register(0)]
 }

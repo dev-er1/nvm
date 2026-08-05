@@ -58,7 +58,7 @@ fn float_arithmetic_sequence() {
         },
     ];
 
-    vm.match_execute().expect("execution failed");
+    vm.run().expect("execution failed");
 
     assert_eq!(f64::from_bits(vm.registers[Register(0)]), 4.0);
     assert_eq!(f64::from_bits(vm.registers[Register(1)]), 8.0);

@@ -13,5 +13,5 @@ repository = "https://github.com/dev-er1/nvm"
 criterion = "0.8.2"
 
 [[bench]]
-name = "bench_executors"
+name = "bench_vm"
 harness = false

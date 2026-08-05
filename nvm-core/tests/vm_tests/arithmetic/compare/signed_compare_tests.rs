@@ -95,6 +95,6 @@ fn signed_register_sources() {
         operand2: Some(crate::vm_tests::helpers::reg(1)),
         operand3: Some(crate::vm_tests::helpers::reg(2)),
     }];
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[nvm_core::isa::register::Register(0)], 1);
 }

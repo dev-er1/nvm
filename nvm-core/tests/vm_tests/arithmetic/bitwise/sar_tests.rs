@@ -72,7 +72,7 @@ fn sar_mixed_register_immediate() {
         operand3: Some(crate::vm_tests::helpers::imm(63)),
     }];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(
         nvm.registers[nvm_core::isa::register::Register(0)],
         u64::MAX

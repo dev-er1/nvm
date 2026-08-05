@@ -33,7 +33,7 @@ fn bitwise_chain_and_or_xor() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 0x0FFF ^ 0xFFFF);
 }
 
@@ -57,7 +57,7 @@ fn bitwise_not_then_and() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(2)], 0);
 }
 
@@ -87,7 +87,7 @@ fn bitwise_shift_chain() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 2);
 }
 
@@ -149,7 +149,7 @@ fn bitwise_sar_negative_then_not() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], u64::MAX);
     assert_eq!(nvm.registers[Register(1)], 0);
 }
@@ -188,6 +188,6 @@ fn bitwise_xor_triple() {
         },
     ];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[Register(0)], 0xCCCC_CCCC_CCCC_CCCC);
 }

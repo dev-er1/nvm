@@ -68,22 +68,20 @@ Memory is needed when there are not enough registers to store data.
 ---
 
 ### Bytecode Execution
-After the bytecode has been loaded and memory has been allocated, the program is executed. NVM executes bytecode in two ways:
-1. **Using the standard executor.** The implementation simply uses a `match` on the opcode and executes the corresponding instruction.
-2. **Using a Jump Table.** An address of the instruction handler is stored in advance for each opcode. During execution, NVM obtains the opcode and jumps directly to the corresponding handler.
+After the bytecode has been loaded and memory has been allocated, the program is executed. NVM executes bytecode.
 
-#### What Is a Jump Table?
-A Jump Table is an array of addresses of instruction handlers. The opcode is used as the array index:
+#### What Is Direct Threading?
+Instead of dispatching on the opcode in the hot loop, the program is **once** encoded into a flat array of numbers. Each instruction takes 4 slots of 8 bytes:
 ```text
-jump_table[opcode] -> handler
+[handler address] [operand1] [operand2] [operand3]
 ```
+The first slot stores the **address of the instruction handler**, chosen by the opcode and operand kinds. The jump table is used only at encoding time — it is absent from the hot loop.
 
 When executing an instruction, NVM:
-1. Reads the opcode.
-2. Uses the opcode as an index into the Jump Table.
-3. Jumps to the corresponding handler.
-4. The handler executes the instruction.
-5. Control is passed to the next instruction.
+1. Reads the handler address from the instruction header.
+2. Jumps directly to the corresponding handler.
+3. The handler executes the instruction (operands are read via a raw pointer, without parsing their kinds).
+4. The handler returns the index of the next instruction.
 
 ---
 
@@ -103,7 +101,6 @@ When executing an instruction, NVM:
   - Module path: `nvm-core/src/vm/`
   - VM structure definition: [`vm/mod.rs`](../../nvm-core/src/vm/mod.rs)
   - Error enumeration: [`vm/err.rs`](../../nvm-core/src/vm/err.rs)
-  - Standard executor: [`vm/default.rs`](../../nvm-core/src/vm/default.rs)
-  - Jump Table: [`vm/jumptable.rs`](../../nvm-core/src/vm/jumptable.rs)
+  - Executor: [`vm/executer.rs`](../../nvm-core/src/vm/executer.rs)
   - Memory structure: [`vm/memory.rs`](../../nvm-core/src/vm/memory.rs)
   - Register file: [`vm/register_file.rs`](../../nvm-core/src/vm/register_file.rs)

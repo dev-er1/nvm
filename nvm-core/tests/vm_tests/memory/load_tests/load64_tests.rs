@@ -137,7 +137,7 @@ fn load64_out_of_bounds_address_returns_error() {
         operand3: None,
     }];
 
-    let err = match vm.match_execute() {
+    let err = match vm.run() {
         Err(err) => err,
         Ok(_) => panic!("expected execution error"),
     };
@@ -415,7 +415,7 @@ fn load64_one_byte_short_returns_error() {
         operand3: None,
     }];
 
-    let err = match vm.match_execute() {
+    let err = match vm.run() {
         Err(err) => err,
         Ok(_) => panic!("expected execution error"),
     };

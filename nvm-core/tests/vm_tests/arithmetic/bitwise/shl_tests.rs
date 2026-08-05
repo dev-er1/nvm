@@ -59,7 +59,7 @@ fn shl_registers() {
         operand3: Some(crate::vm_tests::helpers::reg(2)),
     }];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(nvm.registers[nvm_core::isa::register::Register(0)], 96);
 }
 
@@ -76,7 +76,7 @@ fn shl_shift_by_register() {
         operand3: Some(crate::vm_tests::helpers::reg(1)),
     }];
 
-    nvm.match_execute().expect("execution failed");
+    nvm.run().expect("execution failed");
     assert_eq!(
         nvm.registers[nvm_core::isa::register::Register(2)],
         1u64 << 63

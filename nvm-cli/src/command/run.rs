@@ -33,9 +33,9 @@ pub fn run(args: RunArguments) -> i32 {
     };
 
     let nvm = if let Some(memory) = args.memory {
-        NVMl::with_memory_size(None, memory)
+        NVMl::with_memory_size(memory)
     } else {
-        NVMl::new(None)
+        NVMl::new()
     };
 
     if let Err(e) = nvm.run(source) {

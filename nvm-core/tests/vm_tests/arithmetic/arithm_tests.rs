@@ -30,7 +30,7 @@ fn imm_f(value: f64) -> Operand {
 fn execute(program: Vec<Instruction>) -> NVM {
     let mut vm = NVM::new(0);
     vm.program = program;
-    vm.match_execute().expect("execution failed");
+    vm.run().expect("execution failed");
     vm
 }
 
