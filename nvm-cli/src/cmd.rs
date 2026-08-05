@@ -23,6 +23,9 @@ pub enum Command {
         /// Сколько выделить памяти на выполнение программы.
         memory: Option<usize>,
     },
+
+    /// `nvm version`
+    Version,
 }
 
 // `*Info` и `const COMMAND` нужны только для вывода информации об
@@ -72,5 +75,11 @@ pub const COMMAND: &[CommandInfo] = &[
                 description: "Allocate the specified amount of memory for program execution.",
             },
         ],
+    },
+    CommandInfo {
+        name: "version",
+        usage: "version",
+        description: "Print NVM version.",
+        flags: &[],
     },
 ];

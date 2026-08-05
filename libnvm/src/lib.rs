@@ -12,6 +12,7 @@ use nvm_core::{
 };
 
 // Публичный API `libnvm`: тип ошибки и инструкции — переэкспортируем из `nvm-core`.
+pub use nvm_core::NVM_VERSION;
 pub use nvm_core::error::{NVMError, NVMErrorKind};
 pub use nvm_core::isa::instruction::Instruction;
 

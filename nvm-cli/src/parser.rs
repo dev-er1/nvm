@@ -23,6 +23,7 @@ pub fn parse() -> Result<Command, CLIError> {
     match command_name {
         "help" => parse_help(&raw),
         "run" => parse_run(&raw),
+        "version" => Ok(Command::Version),
         cmd => Err(CLIError::new(
             CLIErrorKind::UnknownCommand(cmd.to_string()),
             Some(raw),
