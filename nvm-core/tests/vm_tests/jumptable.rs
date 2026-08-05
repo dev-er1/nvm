@@ -327,6 +327,51 @@ fn ret_empty_call_stack_error() {
     assert!(matches!(err.kind, VMErrorKind::EmptyCallStack));
 }
 
+#[test]
+fn call_and_ret_round_trip() {
+    let vm = run_jt(vec![
+        Instruction {
+            opcode: OperationCode::MOVE,
+            operand1: Some(reg(0)),
+            operand2: Some(imm(21)),
+            operand3: None,
+        },
+        Instruction {
+            opcode: OperationCode::CALL,
+            operand1: Some(imm(4)),
+            operand2: None,
+            operand3: None,
+        },
+        Instruction {
+            opcode: OperationCode::IADD,
+            operand1: Some(reg(0)),
+            operand2: Some(reg(0)),
+            operand3: Some(reg(0)),
+        },
+        Instruction {
+            opcode: OperationCode::EXIT,
+            operand1: None,
+            operand2: None,
+            operand3: None,
+        },
+        // Подпрограмма: r0 += r0; RET.
+        Instruction {
+            opcode: OperationCode::IADD,
+            operand1: Some(reg(0)),
+            operand2: Some(reg(0)),
+            operand3: Some(reg(0)),
+        },
+        Instruction {
+            opcode: OperationCode::RET,
+            operand1: None,
+            operand2: None,
+            operand3: None,
+        },
+    ]);
+    // 21 -> CALL -> 42 -> RET -> 84 -> EXIT.
+    assert_eq!(vm.registers[Register(0)], 84);
+}
+
 // ====== Проверки на этапе кодирования ======
 
 #[test]

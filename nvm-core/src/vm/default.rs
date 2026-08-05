@@ -376,7 +376,7 @@ impl NVM {
             }
             OperationCode::CALL => {
                 let offset = instr.expect1()?;
-                self.call_stack.push(*ip);
+                self.call_stack.push(*ip + 1);
                 *ip = self.get_value(offset)? as usize;
                 jumped = true;
             }

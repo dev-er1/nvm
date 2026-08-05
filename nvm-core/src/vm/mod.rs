@@ -15,8 +15,11 @@
 //! - [`memory`] — память виртуальной машины;
 //! - [`register_file`] — банк регистров;
 //! - [`err`] — ошибки ВМ.
-//! - [`default`] — стандартный исполнитель инструкций на основе `match`.
+//! - [`default`] — стандартный исполнитель инструкций на основе `match`;
+//! - [`jumptable`] — исполнитель на основе jump table;
+//! - [`direct_threading`] — исполнитель на основе direct threading.
 pub mod default;
+pub mod direct_threading;
 pub mod err;
 pub mod jumptable;
 pub mod memory;
