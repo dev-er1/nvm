@@ -7,7 +7,7 @@
 ![CI](https://github.com/dev-er1/nvm/actions/workflows/ci.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square)](LICENSE)
 
-**[Contributing](CONTRIBUTING.ru.md) | [Roadmap](ROADMAP.ru.md) | [Architecture](docs/Architecture/Architecture.ru.md) | [NB Format](docs/File-Format/File-Format.ru.md) | [CoC](CODE_OF_CONDUCT.ru.md) | [License](LICENSE)**
+**[Contributing](CONTRIBUTING.md) | [Roadmap](ROADMAP.md) | [Architecture](docs/Architecture/Architecture.md) | [NB Format](docs/File-Format/File-Format.md) | [CoC](CODE_OF_CONDUCT.md) | [License](LICENSE) | [Changelog](CHANGELOG.md)**
 
 </div>
 

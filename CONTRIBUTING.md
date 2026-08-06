@@ -3,7 +3,7 @@ First of all, thank you for your interest in NVM! I'm glad that you want to cont
 Below are instructions on how you can help.
 
 ## How to Contribute
-1. Read the [documentation](docs/Architecture/Architecture.en.md).
+1. Read the [documentation](docs/Architecture/Architecture.md).
 2. Find an issue you want to solve or a feature you want to add.
 3. If the change affects NVM's architecture, ISA, or bytecode format, create an Issue to discuss it before starting work.
 4. Fork the repository and create a new branch for your work.
