@@ -292,6 +292,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nvm-asm"
+version = "0.1.0"
+dependencies = [
+ "nvm-core",
+]
+
+[[package]]
 name = "nvm-cli"
 version = "0.1.0"
 dependencies = [

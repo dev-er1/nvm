@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["libnvm", "nvm-cli","nvm-core"]
+members = ["libnvm", "nvm-asm", "nvm-cli","nvm-core"]
 
 [profile.dev]
 debug = 1
