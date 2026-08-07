@@ -8,8 +8,10 @@
 //! - [`str_pool`] — пул строк.
 //! - [`position`] — структура позиции токена в исходном коде.
 //! - [`lexer`] — лексер (лексический анализ).
+//! - [`parser`] — парсер.
 pub mod error;
 pub mod lexer;
+pub mod parser;
 pub mod position;
 pub mod src;
 pub mod str_pool;

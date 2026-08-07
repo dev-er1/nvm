@@ -3,19 +3,23 @@
 //! Pretty-print ошибок в стиле `rustc`/`clang`.
 use std::fmt::{self, Display, Formatter, Write};
 
-use crate::{lexer::err::LexerError, position::Position, src::SourceCode};
+use crate::{lexer::err::LexerError, parser::err::ParserError, position::Position, src::SourceCode};
 
 /// Виды ошибок компиляции NVM Assembly.
 #[derive(Debug, Clone)]
 pub enum NvmASMErrorKind {
     /// Ошибка лексического анализа.
     LexerError(LexerError),
+    
+    /// Ошибка синтаксического анализа.
+    ParserError(ParserError),
 }
 
 impl Display for NvmASMErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::LexerError(err) => write!(f, "{err}"),
+            Self::ParserError(err) => write!(f, "{err}"),
         }
     }
 }
