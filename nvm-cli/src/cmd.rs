@@ -24,6 +24,20 @@ pub enum Command {
         memory: Option<usize>,
     },
 
+    /// `nvm compile <file> [--output <path>] [--time]`
+    Compile {
+        /// Путь к файлу NVM Assembly (.na).
+        file: String,
+
+        /// Куда записать результирующий .nb файл.
+        ///
+        /// Если `None` — рядом с исходным файлом.
+        output: Option<String>,
+
+        /// Если `true` — выводить время компиляции.
+        time: bool,
+    },
+
     /// `nvm version`
     Version,
 }
@@ -73,6 +87,21 @@ pub const COMMAND: &[CommandInfo] = &[
             FlagInfo {
                 usage: "--memory <bytes>",
                 description: "Allocate the specified amount of memory for program execution.",
+            },
+        ],
+    },
+    CommandInfo {
+        name: "compile",
+        usage: "compile <file>",
+        description: "Compile NVM Assembly (.na) to NVM Bytecode (.nb).",
+        flags: &[
+            FlagInfo {
+                usage: "--output <path>",
+                description: "Write the output to <path> instead of the default .nb file.",
+            },
+            FlagInfo {
+                usage: "--time",
+                description: "Show compilation time.",
             },
         ],
     },
