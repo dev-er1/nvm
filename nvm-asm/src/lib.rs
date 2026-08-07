@@ -9,6 +9,8 @@
 //! - [`position`] — структура позиции токена в исходном коде.
 //! - [`lexer`] — лексер (лексический анализ).
 //! - [`parser`] — парсер.
+//! - [`codegen`] — кодогенерация.
+pub mod codegen;
 pub mod error;
 pub mod lexer;
 pub mod parser;

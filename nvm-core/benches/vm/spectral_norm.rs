@@ -2,7 +2,7 @@
 //
 // Спектральная норма: y = A·x итеративно, 10 проходов (80×80).
 // Матрица A(i,j) = 1 / ((i+j)(i+j+1)/2 + i + 1) считается на лету
-// только вещественной арифметикой (без int→float).
+// только вещественной арифметикой (без int->float).
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
