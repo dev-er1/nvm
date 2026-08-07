@@ -2,10 +2,14 @@
 //!
 //! `libnvm` — крейт для использования NVM.
 //!
-//! Основная точка входа — [`NVMl`]. Он принимает байт-код через
-//! [`BytecodeSource`] и исполняет его.
+//! Две части:
+//! - [`NVMl`] — исполнение байт-кода. Принимает байт-код через
+//!   [`BytecodeSource`] и исполняет его;
+//! - [`NVMAssembler`] — компиляция NVM Assembly в инструкции
+//!   и в байт-код (`.nb`).
 use std::path::PathBuf;
 
+use nvm_asm::{codegen, lexer::Lexer, parser::Parser, src::SourceCode, str_pool::StrPool};
 use nvm_core::{
     loader::NVMLoader,
     vm::{NVM, memory::NVMMemory},
@@ -15,6 +19,9 @@ use nvm_core::{
 pub use nvm_core::NVM_VERSION;
 pub use nvm_core::error::{NVMError, NVMErrorKind};
 pub use nvm_core::isa::instruction::Instruction;
+
+// Ошибки компиляции — переэкспортируем из `nvm-asm`.
+pub use nvm_asm::error::{NvmASMError, NvmASMErrorKind};
 
 /// Размер памяти ВМ по умолчанию (в байтах).
 pub const DEFAULT_MEMORY_SIZE: usize = 64 * 1024;
@@ -76,5 +83,95 @@ impl NVMl {
 impl Default for NVMl {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Компилятор NVM Assembly в NVM Bytecode.
+///
+/// Собирает полный конвейер компиляции текстового ассемблера:
+///
+/// ```text
+/// текст -> лексер -> парсер -> кодогенератор -> (encoder -> .nb)
+/// ```
+///
+/// При ошибке возвращается первая же ошибка компиляции
+/// ([`NvmASMError`]) с позицией и фрагментом исходного кода.
+pub struct NVMAssembler;
+
+impl NVMAssembler {
+    /// Компилирует исходный текст NVM Assembly в инструкции.
+    ///
+    /// Метки разрешаются в индексы инструкций (см. `codegen`).
+    ///
+    /// ## Пример
+    ///
+    /// ```rust
+    /// use libnvm::NVMAssembler;
+    ///
+    /// let instructions = NVMAssembler::assemble("MOVE R0, 42\nEXIT").expect("valid program");
+    /// assert_eq!(instructions.len(), 2);
+    /// ```
+    // Ошибка несёт фрагмент исходного кода для pretty-print
+    // (NvmASMError::format) — это осознанный размер.
+    #[allow(clippy::result_large_err)]
+    pub fn assemble(source: &str) -> Result<Vec<Instruction>, NvmASMError> {
+        let source = SourceCode::new(source.to_string());
+        let mut str_pool = StrPool::from_source(&source);
+
+        // ====== Лексер ======
+
+        let (tokens, lexer_errors, source) = {
+            let mut lexer = Lexer::new(source.clone(), &mut str_pool);
+            let tokens = lexer.tokenize().to_vec();
+            (tokens, lexer.errors.clone(), lexer.src)
+        };
+
+        if let Some(err) = lexer_errors.first() {
+            return Err(NvmASMError::error(
+                err.pos,
+                NvmASMErrorKind::LexerError(err.clone()),
+                false,
+                None,
+                source,
+            ));
+        }
+
+        // ====== Парсер ======
+
+        let mut parser = Parser::new(tokens);
+        let ast = parser.parse().clone();
+
+        if let Some(err) = parser.errors.first() {
+            return Err(NvmASMError::error(
+                err.position,
+                NvmASMErrorKind::ParserError(err.clone()),
+                false,
+                None,
+                source,
+            ));
+        }
+
+        // ====== Кодогенератор ======
+
+        codegen::generate(&ast, &str_pool).map_err(|err| {
+            NvmASMError::error(
+                err.position,
+                NvmASMErrorKind::CodegenError(err),
+                false,
+                None,
+                source,
+            )
+        })
+    }
+
+    /// Компилирует исходный текст NVM Assembly в байты `.nb`-файла.
+    ///
+    /// Отличается от [`Self::assemble`] кодированием инструкций в
+    /// формат NVM Bytecode (см. `docs/File-Format/File-Format.md`).
+    #[allow(clippy::result_large_err)]
+    pub fn assemble_to_bytecode(source: &str) -> Result<Vec<u8>, NvmASMError> {
+        let instructions = Self::assemble(source)?;
+
+        Ok(codegen::encoder::encode(&instructions))
     }
 }

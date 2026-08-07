@@ -9,3 +9,4 @@ repository = "https://github.com/dev-er1/nvm"
 
 [dependencies]
 nvm-core = { path = "../nvm-core", version = "0.1.0" }
+nvm-asm = { path = "../nvm-asm", version = "0.1.0" }
