@@ -1,7 +1,6 @@
 <div align="center">
 
 # **NVM**
-![](logo/nvm.svg)
 
 ![Rust](https://img.shields.io/badge/MSRV-1.96.0-blue?style=flat-square&logo=rust&logoColor=white)
 ![CI](https://github.com/dev-er1/nvm/actions/workflows/ci.yml/badge.svg)
