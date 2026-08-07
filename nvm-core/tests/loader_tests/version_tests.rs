@@ -60,7 +60,6 @@ fn newer_patch_version_fails() {
     ));
 }
 
-
 #[test]
 fn major_version_zero_with_high_minor_patch_works() {
     let result = run_loader(make_nb_with_version(0, 0, 0, &nop_bytes()));

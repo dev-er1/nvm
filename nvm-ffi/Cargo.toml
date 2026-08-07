@@ -1,0 +1,14 @@
+[package]
+name = "nvm-ffi"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.96.0"
+description = "C ABI bindings for NVM."
+repository = "https://github.com/dev-er1/nvm"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+libnvm = { path = "../libnvm", version = "0.1.1" }
