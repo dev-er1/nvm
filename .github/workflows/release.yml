@@ -23,11 +23,7 @@ jobs:
             archive_name: nvm-linux-x64.tar.gz
             package_format: tar.gz
           
-          - os: ubuntu-latest
-            target: x86-unknown-linux-gnu
-            binary_name: nvm
-            archive_name: nvm-linux-x86.tar.gz
-            package_format: tar.gz
+          # `x86-unknown-linux-gnu` больше не поддерживается в Rust.
 
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
@@ -75,7 +71,16 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
-      - name: Build nvm-cli
+      - name: Install cross
+        if: runner.os == 'Linux'
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: cross build --release --package nvm-cli --target ${{ matrix.target }}
+
+      - name: Build (Windows & macOS)
+        if: runner.os != 'Linux'
         run: cargo build --release --package nvm-cli --target ${{ matrix.target }}
 
       - name: Package Windows asset

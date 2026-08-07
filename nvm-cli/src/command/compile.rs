@@ -52,7 +52,6 @@ pub fn compile(args: CompileArguments) -> i32 {
         output.display()
     );
 
-
     if args.time {
         ansiprint!(
             "\x1b[1;36mFinished\x1b[0m in \x1b[1m{:?}\x1b[0m",

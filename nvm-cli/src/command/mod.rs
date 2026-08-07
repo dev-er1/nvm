@@ -21,15 +21,9 @@ pub fn route(cmd: Command) -> i32 {
             cmd,
         }),
         Command::Run { file, time, memory } => run::run(RunArguments { file, time, memory }),
-        Command::Compile {
-            file,
-            output,
-            time,
-        } => compile::compile(CompileArguments {
-            file,
-            output,
-            time,
-        }),
+        Command::Compile { file, output, time } => {
+            compile::compile(CompileArguments { file, output, time })
+        }
         Command::Version => {
             ansiprint!("\x1b[1mv{NVM_VERSION}\x1b[0m");
             0
