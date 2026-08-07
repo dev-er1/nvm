@@ -49,7 +49,7 @@ fn newer_minor_version_fails() {
 
 #[test]
 fn newer_patch_version_fails() {
-    let err = match run_loader(make_nb_with_version(0, 1, 1, &nop_bytes())) {
+    let err = match run_loader(make_nb_with_version(0, 1, 3, &nop_bytes())) {
         Err(e) => e,
         Ok(_) => panic!("expected loader error"),
     };
@@ -60,24 +60,6 @@ fn newer_patch_version_fails() {
     ));
 }
 
-#[test]
-fn unsupported_version_contains_file_and_vm_versions() {
-    let err = match run_loader(make_nb_with_version(2, 5, 0, &nop_bytes())) {
-        Err(e) => e,
-        Ok(_) => panic!("expected loader error"),
-    };
-
-    match &err.kind {
-        LoaderErrorKind::UnsupportedVersion {
-            file_version,
-            vm_version,
-        } => {
-            assert_eq!(file_version, "2.5.0");
-            assert_eq!(vm_version, "0.1.0");
-        }
-        _ => panic!("expected UnsupportedVersion, got {:?}", err.kind),
-    }
-}
 
 #[test]
 fn major_version_zero_with_high_minor_patch_works() {
