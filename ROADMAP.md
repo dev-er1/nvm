@@ -1,7 +1,7 @@
 # NVM Roadmap
 NVM development roadmap.
 
+- [x]: NVM bytecode text format.
 - [ ]: I/O.
-- [ ]: NVM bytecode text format.
 - [ ]: Optimize the VM.
 - [ ]: Add super-instructions.
