@@ -1,4 +1,4 @@
-// Тесты на `ULT`, `ULE`, `UGT`, `UGE`.
+// Tests for `ULT`, `ULE`, `UGT`, `UGE`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::compare::get_int;

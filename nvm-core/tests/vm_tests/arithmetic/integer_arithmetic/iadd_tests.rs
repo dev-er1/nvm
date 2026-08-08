@@ -1,4 +1,4 @@
-// Тесты на `IADD`.
+// Tests for `IADD`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::integer_arithmetic::get_result;

@@ -1,21 +1,21 @@
 // nvm-asm/src/codegen/encoder.rs
 //
-//! # Генератор NVM Bytecode (`.nb`)
+//! # NVM Bytecode (`.nb`) generator
 //!
-//! Кодирует программу из [`Instruction`] в байтовый формат NVM Bytecode —
-//! формат, в котором хранятся и исполняются программы виртуальной машины
-//! (см. `docs/File-Format/File-Format.md`).
+//! Encodes a program from [`Instruction`] into the NVM Bytecode binary format —
+//! the format in which virtual machine programs are stored and executed
+//! (see `docs/File-Format/File-Format.md`).
 //!
-//! ## Использование
+//! ## Usage
 //!
-//! Генератор принимает готовую программу — результат [`generate`](super::generate):
+//! The generator takes a ready program — the result of [`generate`](super::generate):
 //!
 //! ```text
-//! текст -> лексер -> парсер -> кодогенератор -> encoder -> .nb
+//! text -> lexer -> parser -> code generator -> encoder -> .nb
 //! ```
 //!
-//! Кодирование не может завершиться ошибкой: любая инструкция из опкода
-//! и до трёх операндов (регистр или immediate) представима в этом формате.
+//! Encoding cannot fail: any instruction with an opcode and up to three
+//! operands (a register or an immediate) is representable in this format.
 use nvm_core::{
     NVM_VERSION,
     isa::{
@@ -25,16 +25,16 @@ use nvm_core::{
     },
 };
 
-/// Магическая сигнатура `.nb`-файла: `NVMBC`.
+/// The magic signature of a `.nb` file: `NVMBC`.
 const MAGIC: [u8; 5] = *b"NVMBC";
 
-/// Размер заголовка: 5 байт magic + 6 байт версии.
+/// Header size: 5 bytes of magic + 6 bytes of version.
 const HEADER_SIZE: usize = 11;
 
-/// Кодирует программу в формат NVM Bytecode.
+/// Encodes a program into the NVM Bytecode format.
 ///
-/// В заголовок записывается минимальная требуемая версия NVM — текущая
-/// версия ядра [`NVM_VERSION`] в формате `major.minor.patch`.
+/// The header records the minimum required NVM version — the current
+/// kernel version [`NVM_VERSION`] in the `major.minor.patch` format.
 pub fn encode(instructions: &[Instruction]) -> Vec<u8> {
     let mut bytes = Vec::with_capacity(HEADER_SIZE + instructions.len() * 11);
 
@@ -60,10 +60,10 @@ pub fn encode(instructions: &[Instruction]) -> Vec<u8> {
     bytes
 }
 
-/// Записывает версию `major.minor.patch` тремя `u16` в Little-Endian.
+/// Writes the version `major.minor.patch` as three `u16`s in little-endian.
 ///
-/// Нечисловые части (например, суффикс пререлиза) обрезаются,
-/// отсутствующие части считаются нулём.
+/// Non-numeric parts (for example, a prerelease suffix) are truncated,
+/// missing parts are treated as zero.
 fn push_version(bytes: &mut Vec<u8>, version: &str) {
     let mut parts = version.split('.').map(version_number);
 
@@ -72,7 +72,7 @@ fn push_version(bytes: &mut Vec<u8>, version: &str) {
     }
 }
 
-/// Разбирает числовую часть строки; для не-числа возвращает 0.
+/// Parses the numeric part of a string; returns 0 for a non-number.
 fn version_number(part: &str) -> u16 {
     part.chars()
         .take_while(|c| c.is_ascii_digit())
@@ -81,7 +81,7 @@ fn version_number(part: &str) -> u16 {
         .unwrap_or(0)
 }
 
-/// Записывает операнд: байт тега и данные.
+/// Writes an operand: a tag byte and the data.
 fn push_operand(bytes: &mut Vec<u8>, operand: Operand) {
     match operand.kind {
         OperandKind::Register(Register(number)) => {

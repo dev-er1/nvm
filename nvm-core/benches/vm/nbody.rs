@@ -1,9 +1,7 @@
-// nvm-core/benches/vm/nbody.rs
+// N-body interaction (geometric inverse square via Newton's method):
+// heavy floating-point arithmetic + the memory of the bodies.
 //
-// N-тельное взаимодействие (геометрическое обращение квадрата через
-// метод Ньютона): тяжёлая вещественная арифметика + память тел.
-//
-// Тело: px +0, py +8, pz +16, vx +24, vy +32, vz +40, mass +48 (строкой 64 байта).
+// Body: px +0, py +8, pz +16, vx +24, vy +32, vz +40, mass +48 (a 64-byte row).
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
@@ -18,8 +16,8 @@ const VX: u64 = 24;
 const VY: u64 = 32;
 const VZ: u64 = 40;
 
-/// Квадратный корень из `d2` в `dist` (вход/выход — регистры r0..r7,
-/// вызывающий код обязан не использовать их поверх).
+/// The square root of `d2` into `dist` (input/output — registers r0..r7,
+/// the caller must not use them on top).
 fn emit_sqrt(asm: &mut Asm, d2: u8, dist: u8, t1: u8) {
     asm.push(i3(Op::FADD, reg(dist), reg(d2), fimm(1.0)));
     for _ in 0..9 {

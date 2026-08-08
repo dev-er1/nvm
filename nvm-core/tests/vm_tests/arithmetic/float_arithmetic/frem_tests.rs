@@ -1,4 +1,4 @@
-// Тесты на `FREM`.
+// Tests for `FREM`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::float_arithmetic::get_result;

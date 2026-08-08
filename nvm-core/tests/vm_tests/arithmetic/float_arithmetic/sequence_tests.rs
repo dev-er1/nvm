@@ -1,4 +1,4 @@
-// Тесты на последовательность дробной арифметики.
+// Tests for a floating-point arithmetic sequence.
 use nvm_core::{
     isa::{
         instruction::Instruction,

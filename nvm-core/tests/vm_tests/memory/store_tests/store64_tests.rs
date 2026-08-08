@@ -1,4 +1,4 @@
-// Тесты на `STORE64`.
+// Tests for `STORE64`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

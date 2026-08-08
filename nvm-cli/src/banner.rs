@@ -1,6 +1,6 @@
 // nvm-cli/src/banner.rs
 //
-//! Красивые баннеры NVM.
+//! Pretty NVM banners.
 use crate::{ansi::unicode_supported, ansiprint};
 
 pub const NVM_ANSI_N_UNICODE: &str = "\x1b[0m\x1b[1m

@@ -7,7 +7,7 @@ pub mod loader_tests {
 
     use nvm_core::loader::{NVMLoader, err::LoaderError};
 
-    // Создаёт минимальный валидный .nb-файл с версией 0.1.0.
+    // Creates a minimal valid .nb-file with version 0.1.0.
     pub fn make_nb(data: &[u8]) -> Vec<u8> {
         let mut bytes = b"NVMBC".to_vec();
         bytes.extend_from_slice(&0u16.to_le_bytes()); // major = 0
@@ -17,7 +17,7 @@ pub mod loader_tests {
         bytes
     }
 
-    // Создаёт .nb-файл с произвольной версией.
+    // Creates a .nb-file with an arbitrary version.
     pub fn make_nb_with_version(major: u16, minor: u16, patch: u16, data: &[u8]) -> Vec<u8> {
         let mut bytes = b"NVMBC".to_vec();
         bytes.extend_from_slice(&major.to_le_bytes());
@@ -27,29 +27,29 @@ pub mod loader_tests {
         bytes
     }
 
-    // Запускает загрузчик и возвращает результат.
+    // Runs the loader and returns the result.
     pub fn run_loader(
         data: Vec<u8>,
     ) -> Result<Vec<nvm_core::isa::instruction::Instruction>, LoaderError> {
         NVMLoader::new(data).transpile()
     }
 
-    // Создаёт байты инструкции NOP (опкод 0, 0 операндов).
+    // Creates bytes of the NOP instruction (opcode 0, 0 operands).
     pub fn nop_bytes() -> Vec<u8> {
         vec![0x00, 0x00]
     }
 
-    // Создаёт байты инструкции EXIT (опкод 1, 0 операндов).
+    // Creates bytes of the EXIT instruction (opcode 1, 0 operands).
     pub fn exit_bytes() -> Vec<u8> {
         vec![0x01, 0x00]
     }
 
-    // Создаёт байты инструкции MOVE с двумя регистрами.
+    // Creates bytes of the MOVE instruction with two registers.
     pub fn move_reg_reg(dst: u8, src: u8) -> Vec<u8> {
         vec![0x02, 0x02, 0x00, dst, 0x00, src]
     }
 
-    // Создаёт байты инструкции MOVE с регистром и immediate.
+    // Creates bytes of the MOVE instruction with a register and an immediate.
     pub fn move_reg_imm(dst: u8, val: u64) -> Vec<u8> {
         let mut bytes = vec![0x02, 0x02, 0x00, dst, 0x01];
         bytes.extend_from_slice(&val.to_le_bytes());

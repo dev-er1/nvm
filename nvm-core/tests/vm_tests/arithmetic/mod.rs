@@ -1,4 +1,4 @@
-// Тесты на арифметику.
+// Tests for arithmetic.
 pub mod arithm_tests;
 pub mod bitwise;
 pub mod compare;

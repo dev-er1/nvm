@@ -1,4 +1,4 @@
-//! В этом модуле находятся исполнители [`Command`].
+//! This module contains the executors of [`Command`].
 pub mod compile;
 pub mod help;
 pub mod run;

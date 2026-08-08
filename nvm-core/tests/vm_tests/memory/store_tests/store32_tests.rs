@@ -1,4 +1,4 @@
-// Тесты на `STORE32`.
+// Tests for `STORE32`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

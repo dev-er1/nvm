@@ -1,4 +1,4 @@
-// Тесты на `JZ`.
+// Tests for `JZ`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::NVM,

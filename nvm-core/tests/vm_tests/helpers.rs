@@ -1,4 +1,4 @@
-// Вспомогательные функции для тестов.
+// Helper functions for tests.
 
 use nvm_core::{
     isa::{
@@ -9,21 +9,21 @@ use nvm_core::{
     vm::NVM,
 };
 
-// Создание нового регистра.
+// Creating a new register.
 pub fn reg(r: u8) -> Operand {
     Operand {
         kind: OperandKind::Register(Register(r)),
     }
 }
 
-// Создание immediate-значения.
+// Creating an immediate value.
 pub fn imm(v: u64) -> Operand {
     Operand {
         kind: OperandKind::Immediate(v),
     }
 }
 
-// Запустить программу на новой ВМ и вернуть экземпляр ВМ.
+// Run the program on a new VM and return the VM instance.
 pub fn run(program: Vec<Instruction>) -> NVM {
     let mut vm = NVM::new(0);
     vm.program = program;
@@ -31,14 +31,14 @@ pub fn run(program: Vec<Instruction>) -> NVM {
     vm
 }
 
-// Запустить программу на уже подготовленной ВМ.
+// Run the program on an already prepared VM.
 pub fn run_on(mut vm: NVM, program: Vec<Instruction>) -> NVM {
     vm.program = program;
     vm.run().expect("execution failed");
     vm
 }
 
-// Запустить программу на новой ВМ и вернуть результат выполнения.
+// Run the program on a new VM and return the execution result.
 pub fn run_with_result(program: Vec<Instruction>) -> Result<NVM, nvm_core::vm::err::VMError> {
     let mut vm = NVM::new(0);
     vm.program = program;

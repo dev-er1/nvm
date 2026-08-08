@@ -1,4 +1,4 @@
-// Тесты на ошибки загрузчика `.nb`-файлов.
+// Tests on loader errors of `.nb`-files.
 use nvm_core::loader::err::LoaderErrorKind;
 
 use super::*;
@@ -25,7 +25,7 @@ fn file_under_11_bytes_returns_format_error() {
 
 #[test]
 fn unknown_opcode_returns_error() {
-    // RET = 52 (0x34). Любой опкод > 52 неизвестен.
+    // RET = 52 (0x34). Any opcode > 52 is unknown.
     let bytes = vec![53, 0x00]; // opcode 53 > RET
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -56,7 +56,7 @@ fn opcode_255_returns_unknown_opcode() {
 
 #[test]
 fn unknown_operand_tag_returns_error() {
-    // MOVE с тегом операнда 0xFF вместо 0x00 или 0x01.
+    // MOVE with operand tag 0xFF instead of 0x00 or 0x01.
     let bytes = vec![0x02, 0x01, 0xFF, 0x00];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -87,7 +87,7 @@ fn operand_tag_0x02_returns_error() {
 
 #[test]
 fn truncated_instruction_header_returns_unexpected_eof() {
-    // Есть только опкод, нет operand_count.
+    // There is only an opcode, no operand_count.
     let bytes = vec![0x02];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -103,7 +103,7 @@ fn truncated_instruction_header_returns_unexpected_eof() {
 
 #[test]
 fn truncated_register_operand_returns_unexpected_eof() {
-    // MOVE r0, ? — есть тег 0x00, но нет байта регистра.
+    // MOVE r0, ? — there is a tag 0x00, but no register byte.
     let bytes = vec![0x02, 0x02, 0x00, 0x00, 0x00];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -119,7 +119,7 @@ fn truncated_register_operand_returns_unexpected_eof() {
 
 #[test]
 fn truncated_immediate_operand_returns_unexpected_eof() {
-    // MOVE r0, imm — есть тег 0x01, но только 3 байта вместо 8.
+    // MOVE r0, imm — there is a tag 0x01, but only 3 bytes instead of 8.
     let bytes = vec![0x02, 0x02, 0x00, 0x00, 0x01, 0xAA, 0xBB, 0xCC];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -135,7 +135,7 @@ fn truncated_immediate_operand_returns_unexpected_eof() {
 
 #[test]
 fn truncated_after_opcode_with_operand_count_only() {
-    // Есть опкод и operand_count = 2, но ни одного операнда.
+    // There is an opcode and operand_count = 2, but not a single operand.
     let bytes = vec![0x02, 0x02];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -151,7 +151,7 @@ fn truncated_after_opcode_with_operand_count_only() {
 
 #[test]
 fn operand_count_4_returns_unknown_opcode() {
-    // operand_count > 3 считается как неизвестный опкод.
+    // operand_count > 3 is treated as an unknown opcode.
     let bytes = vec![0x00, 0x04];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -187,7 +187,7 @@ fn negative_error_reason_contains_description() {
 
 #[test]
 fn truncated_file_with_only_magic() {
-    // 5 magic + 4 байта версии (всего 9).
+    // 5 magic + 4 bytes of version (9 in total).
     let mut data = b"NVMBC".to_vec();
     data.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]);
 
@@ -204,7 +204,7 @@ fn truncated_file_with_only_magic() {
 
 #[test]
 fn empty_instruction_with_operand_count_1_and_no_data() {
-    // opcode=0x00 (NOP), operand_count=1, но ни одного байта операнда.
+    // opcode=0x00 (NOP), operand_count=1, but not a single operand byte.
     let bytes = vec![0x00, 0x01];
 
     let err = match run_loader(make_nb(&bytes)) {

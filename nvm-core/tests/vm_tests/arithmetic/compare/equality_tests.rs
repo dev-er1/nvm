@@ -1,4 +1,4 @@
-// Тесты на `IEQ` & `INE`.
+// Tests for `IEQ` & `INE`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::compare::get_int;

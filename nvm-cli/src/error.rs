@@ -1,6 +1,6 @@
 // nvm-cli/src/error.rs
 //
-//! Ошибки CLI.
+//! CLI errors.
 use std::{
     fmt::{self, Display, Formatter},
     iter::repeat_n,
@@ -9,61 +9,61 @@ use std::{
 use crate::ansiprint;
 
 pub enum CLIErrorKind {
-    /// Неизвестный флаг.
+    /// Unknown flag.
     UnknownFlag(String),
 
-    /// Неожиданное значение для флага.
+    /// Unexpected value for a flag.
     ///
-    /// Ошибка происходит, когда даётся значение флагу,
-    /// который не требует значения.
+    /// The error occurs when a value is given to a flag
+    /// that does not require one.
     ///
-    /// ## Пример
+    /// ## Example
     /// ```text
     /// nvm help --show-banner 67
     ///                        ^^
     /// ```
     UnexpectedValue(
-        // Флаг.
+        // The flag.
         String,
-        // Значение.
+        // The value.
         String,
     ),
 
-    /// Неизвестная команда.
+    /// Unknown command.
     UnknownCommand(String),
 
-    /// Нету значения для флага, который требует значение.
+    /// No value for a flag that requires one.
     MissingValueForFlag(
-        // Флаг.
+        // The flag.
         String,
     ),
 
-    /// Нету значения для команды, которая требует значение.
+    /// No value for a command that requires one.
     MissingValueForCommand(
-        // Команда.
+        // The command.
         String,
     ),
 
-    /// Неожиданный аргумент.
+    /// Unexpected argument.
     ///
-    /// Ошибка происходит, когда команде передано больше аргументов,
-    /// чем она ожидает.
+    /// The error occurs when a command receives more arguments
+    /// than it expects.
     ///
-    /// ## Пример
+    /// ## Example
     /// ```text
     /// nvm run prog.nb extra
     ///              ^^^^^^^^
     /// ```
     UnexpectedArgument(
-        // Аргумент.
+        // The argument.
         String,
     ),
 
-    /// Неправильное значение.
+    /// Invalid value.
     ///
-    /// Например, флаг ожидает [`u64`], а получает отрицательное число.
+    /// For example, the flag expects a [`u64`], but receives a negative number.
     InvalidValue(
-        /// Имя флага.
+        /// The flag name.
         String,
     ),
 }
@@ -87,11 +87,11 @@ impl Display for CLIErrorKind {
 pub struct CLIError {
     pub kind: CLIErrorKind,
 
-    /// Аргументы CLI для Pretty-Print ошибки.
+    /// CLI arguments for the pretty-print of the error.
     pub raw_args: Option<Vec<String>>,
 
-    /// Какие аргументы в `raw_args` неправильные.
-    /// Нужно для вывода ошибки.
+    /// Which arguments in `raw_args` are wrong.
+    /// Needed to show the error.
     pub which_args: Option<Vec<usize>>,
 }
 
@@ -115,12 +115,12 @@ impl CLIError {
         if let Some(raw_args) = &self.raw_args
             && let Some(which_args) = &self.which_args
         {
-            // Исходная командная строка.
+            // The original command line.
             let args = raw_args.join(" ");
 
             ansiprint!("\x1b[36m-->\x1b[0m  nvm {args}");
 
-            // Указатели на неправильные аргументы.
+            // Pointers to the erroneous arguments.
             let mut pointers = String::new();
 
             for (i, arg) in raw_args.iter().enumerate() {
@@ -130,7 +130,7 @@ impl CLIError {
                     pointers.extend(repeat_n(' ', arg.len()));
                 }
 
-                // Пробел между аргументами.
+                // A space between arguments.
                 if i + 1 < raw_args.len() {
                     pointers.push(' ');
                 }

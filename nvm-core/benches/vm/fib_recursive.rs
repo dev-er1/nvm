@@ -1,13 +1,11 @@
-// nvm-core/benches/vm/fib_recursive.rs
-//
-// Рекурсивный Фибоначчи (fib(22)) со стеком значений в памяти и CALL/RET.
+// Recursive Fibonacci (fib(22)) with a value stack in memory and CALL/RET.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// `fib(n)` в `r0`; база — `n < 2`; временно сохраняет `n` на стеке.
+/// `fib(n)` in `r0`; the base case is `n < 2`; temporarily saves `n` on the stack.
 fn program(n: u64) -> Vec<Instruction> {
     let mut asm = Asm::new();
     asm.jump("main");

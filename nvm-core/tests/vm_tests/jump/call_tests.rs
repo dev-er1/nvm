@@ -1,4 +1,4 @@
-// Тесты на `CALL`.
+// Tests for `CALL`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::NVM,
@@ -131,7 +131,7 @@ fn call_and_ret_round_trip() {
             operand2: None,
             operand3: None,
         },
-        // Подпрограмма: r0 += r0; RET.
+        // Subroutine: r0 += r0; RET.
         Instruction {
             opcode: OperationCode::IADD,
             operand1: Some(reg(0)),

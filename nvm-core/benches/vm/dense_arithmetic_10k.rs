@@ -1,7 +1,5 @@
-// nvm-core/benches/vm/dense_arithmetic_10k.rs
-//
-// Плотная арифметика: смесь целочисленных, битовых и вещественных
-// операций в одном цикле (без операций с памятью).
+// Dense arithmetic: a mix of integer, bitwise and floating-point
+// operations in one loop (no memory operations).
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};

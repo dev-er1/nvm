@@ -1,16 +1,14 @@
-// nvm-core/benches/vm/spectral_norm.rs
-//
-// Спектральная норма: y = A·x итеративно, 10 проходов (80×80).
-// Матрица A(i,j) = 1 / ((i+j)(i+j+1)/2 + i + 1) считается на лету
-// только вещественной арифметикой (без int->float).
+// Spectral norm: y = A·x iteratively, 10 passes (80×80).
+// The matrix A(i,j) = 1 / ((i+j)(i+j+1)/2 + i + 1) is computed on the fly
+// with floating-point arithmetic only (no int->float).
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// Тело ячейки: `acc += A(i,j) * src[j]`. Регистры r0..r3 — рабочие;
-/// `acc` в r3 накапливается снаружи.
+/// The cell body: `acc += A(i,j) * src[j]`. Registers r0..r3 are scratch;
+/// `acc` in r3 is accumulated outside.
 fn emit_cell(asm: &mut Asm, i: u64, j: u64, src_base: u64) {
     let fi = i as f64;
     let fj = j as f64;

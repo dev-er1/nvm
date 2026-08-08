@@ -1,4 +1,4 @@
-// Тесты на целочисленную арифметику.
+// Tests for integer arithmetic.
 pub mod iadd_tests;
 pub mod imul_tests;
 pub mod isub_tests;
@@ -18,7 +18,7 @@ use nvm_core::{
     vm::NVM,
 };
 
-// Вспомогательная функция для тестирования.
+// Helper function for testing.
 pub fn get_result(opcode: OperationCode, a: u64, b: u64) -> u64 {
     let mut nvm = NVM::new(0);
     nvm.program = vec![Instruction {

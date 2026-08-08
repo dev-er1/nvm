@@ -1,66 +1,66 @@
 // nvm-core/src/loader/err.rs
 //
-//! Ошибки загрузчика.
+//! Loader errors.
 use std::fmt::{self, Display, Formatter};
 
-/// Виды ошибок.
+/// Error kinds.
 #[derive(Debug)]
 pub enum LoaderErrorKind {
-    /// Файл не в формате NVM Bytecode.
+    /// The file is not in NVM Bytecode format.
     FileIsNotInNVMBytecodeFormat {
-        /// Полная причина ошибки.
+        /// The full reason of the error.
         reason: String,
     },
 
-    /// Неподдерживаемая версия NVM.
+    /// An unsupported NVM version.
     UnsupportedVersion {
-        /// Версия, требуемая файлом.
+        /// The version required by the file.
         file_version: String,
 
-        /// Текущая версия ВМ.
+        /// The current VM version.
         vm_version: String,
     },
 
-    /// Неизвестный опкод.
+    /// An unknown opcode.
     ///
-    /// ## Пример ошибки
+    /// ## Error example
     /// ```text
     /// [0x00] [0x01] [0x37]
     ///               ^^^^^^
     /// ```
-    /// Байт `0x37` не соответствует ни одному известному опкоду.
+    /// The byte `0x37` does not match any known opcode.
     UnknownOpcode {
-        /// Байт, который не удалось распознать как опкод.
+        /// The byte that could not be recognized as an opcode.
         byte: u8,
     },
 
-    /// Неизвестный тег операнда.
+    /// An unknown operand tag.
     ///
-    /// ## Пример ошибки
+    /// ## Error example
     /// ```text
     /// [0x05] [0x01] [0xFF] [0x2A]
     ///               ^^^^^^
     /// ```
-    /// Байт `0xFF` не является валидным тегом операнда (допустимы `0x00` и `0x01`).
+    /// The byte `0xFF` is not a valid operand tag (`0x00` and `0x01` are allowed).
     UnknownOperandTag {
-        /// Байт, который не удалось распознать как тег.
+        /// The byte that could not be recognized as a tag.
         byte: u8,
     },
 
-    /// Неожиданный конец файла.
+    /// Unexpected end of file.
     ///
-    /// ## Пример ошибки
+    /// ## Error example
     /// ```text
     /// [0x07] [0x02]
     ///        ^^^^^^
     /// ```
-    /// Для полной инструкции не хватает байт: опкод `IADD` ожидает 3 операнда,
-    /// но файл закончился раньше.
+    /// There are not enough bytes for a full instruction: the `IADD` opcode expects
+    /// 3 operands, but the file ended earlier.
     UnexpectedEndOfFile {
-        /// Сколько байт ещё нужно.
+        /// How many more bytes are needed.
         needed: usize,
 
-        /// Сколько байт осталось.
+        /// How many bytes remain.
         remaining: usize,
     },
 }

@@ -1,4 +1,4 @@
-// Тесты на дробную арифметику.
+// Tests for floating-point arithmetic.
 pub mod fadd_tests;
 pub mod fdiv_tests;
 pub mod fmul_tests;
@@ -16,7 +16,7 @@ use nvm_core::{
     vm::NVM,
 };
 
-// Вспомогательная функция для тестирования.
+// Helper function for testing.
 pub fn get_result(opcode: OperationCode, a: f64, b: f64) -> f64 {
     let mut nvm = NVM::new(0);
     nvm.program = vec![Instruction {

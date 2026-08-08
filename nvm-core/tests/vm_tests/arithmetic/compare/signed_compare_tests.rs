@@ -1,4 +1,4 @@
-// Тесты на `SLT`, `SLE`, `SGT`, `SGE`.
+// Tests for `SLT`, `SLE`, `SGT`, `SGE`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::compare::get_int;

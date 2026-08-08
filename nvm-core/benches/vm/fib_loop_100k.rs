@@ -1,13 +1,11 @@
-// nvm-core/benches/vm/fib_loop_100k.rs
-//
-// Итеративный Фибоначчи: 100 000 итераций в цикле.
+// Iterative Fibonacci: 100 000 iterations in a loop.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// Тот же цикл, что и в `fib_loop_10k`, но с большим числом итераций.
+/// The same loop as in `fib_loop_10k`, but with more iterations.
 fn program(n: u64) -> Vec<Instruction> {
     let mut asm = Asm::new();
     asm.push(i2(Op::MOVE, reg(0), imm(0)));

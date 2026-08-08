@@ -1,4 +1,4 @@
-// Тесты на `STORE16`.
+// Tests for `STORE16`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

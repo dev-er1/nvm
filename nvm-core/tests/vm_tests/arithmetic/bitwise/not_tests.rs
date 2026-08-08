@@ -1,4 +1,4 @@
-// Тесты на `NOT`.
+// Tests for `NOT`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

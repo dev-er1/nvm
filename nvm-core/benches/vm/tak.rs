@@ -1,14 +1,12 @@
-// nvm-core/benches/vm/tak.rs
-//
-// Функция Такеучи tak(x, y, z) — тройная рекурсия со стеком значений.
+// Takeuchi's function tak(x, y, z) — triple recursion with a value stack.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// `tak(x in r0, y in r1, z in r2) -> r0`; использует r5..r7 и стек
-/// для сохранения аргументов между вложенными вызовами.
+/// `tak(x in r0, y in r1, z in r2) -> r0`; uses r5..r7 and the stack
+/// to save the arguments between nested calls.
 fn program(x: u64, y: u64, z: u64) -> Vec<Instruction> {
     let mut asm = Asm::new();
     asm.jump("main");

@@ -1,4 +1,4 @@
-// Тесты на `FEQ`, `FNE`.
+// Tests for `FEQ`, `FNE`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::compare::get_float;

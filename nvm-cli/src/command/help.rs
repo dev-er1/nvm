@@ -1,6 +1,6 @@
 // nvm-cli/src/command/help.rs
 //
-//! Исполнение команды `help`.
+//! Execution of the `help` command.
 use crate::{
     ansi::unicode_supported,
     ansiprint,
@@ -30,7 +30,7 @@ pub fn help(args: HelpArguments) -> i32 {
         print_banner();
     }
 
-    // Длинное тире это Unicode, поэтому проверяем поддержку Unicode-а.
+    // An em dash is a Unicode character, so we check Unicode support.
     if unicode_supported() {
         ansiprint!("\x1b[1mNVM\x1b[0m — \x1b[9mVirtual Machine\x1b[0m.");
         println!();

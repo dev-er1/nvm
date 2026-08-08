@@ -1,4 +1,4 @@
-// Тесты на `SHR`.
+// Tests for `SHR`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::bitwise::get_result;

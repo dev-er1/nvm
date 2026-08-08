@@ -1,4 +1,4 @@
-// Тесты на граничные случаи загрузчика `.nb`-файлов.
+// Tests on edge cases of the `.nb`-file loader.
 use nvm_core::{isa::opcode::OperationCode, loader::err::LoaderErrorKind};
 
 use super::*;
@@ -47,7 +47,7 @@ fn nop_followed_by_exit() {
 
 #[test]
 fn three_register_operands_maximum() {
-    // IADD r0, r1, r2 — 3 регистровых операнда.
+    // IADD r0, r1, r2 — 3 register operands.
     let bytes = vec![0x0B, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02];
 
     let instructions = run_loader(make_nb(&bytes)).expect("expected successful parse");
@@ -57,8 +57,8 @@ fn three_register_operands_maximum() {
 
 #[test]
 fn three_immediate_operands_maximum() {
-    // Инструкция с 3 immediate: заглушка, используем IADD
-    // IADD imm0, imm1, imm2 — технически это возможно на уровне байткода.
+    // An instruction with 3 immediates: stub, we use IADD
+    // IADD imm0, imm1, imm2 — technically possible at the bytecode level.
     let mut bytes = vec![0x0B, 0x03];
     // imm0 = 1
     bytes.push(0x01);
@@ -150,9 +150,9 @@ fn register_number_255() {
 
 #[test]
 fn all_valid_opcodes_up_to_ret() {
-    // Проверяем, что все опкоды от 0 до 52 парсятся без ошибки.
+    // Checks that all opcodes from 0 to 52 parse without errors.
     for opcode in 0..=52u8 {
-        let bytes = vec![opcode, 0x00]; // 0 операндов
+        let bytes = vec![opcode, 0x00]; // 0 operands
         let result = run_loader(make_nb(&bytes));
         assert!(result.is_ok(), "opcode {opcode} should be valid");
     }
@@ -160,7 +160,7 @@ fn all_valid_opcodes_up_to_ret() {
 
 #[test]
 fn first_opcode_after_ret_fails() {
-    // opcode 53 — первый невалидный.
+    // opcode 53 — the first invalid one.
     let bytes = vec![53, 0x00];
     let result = run_loader(make_nb(&bytes));
     assert!(result.is_err());
@@ -168,7 +168,7 @@ fn first_opcode_after_ret_fails() {
 
 #[test]
 fn instruction_at_max_file_size_without_truncation() {
-    // 256 NOP-инструкций (512 байт).
+    // 256 NOP instructions (512 bytes).
     let mut bytes = vec![];
     for _ in 0..256 {
         bytes.extend_from_slice(&nop_bytes());
@@ -180,7 +180,7 @@ fn instruction_at_max_file_size_without_truncation() {
 
 #[test]
 fn single_byte_operand_tag_missing_body() {
-    // MOVE с неполным регистром: тег 0x00 есть, байта регистра нет.
+    // MOVE with an incomplete register: tag 0x00 is present, the register byte is missing.
     let bytes = vec![0x02, 0x01, 0x00];
 
     let err = match run_loader(make_nb(&bytes)) {
@@ -196,7 +196,7 @@ fn single_byte_operand_tag_missing_body() {
 
 #[test]
 fn mixed_register_and_immediate_operands() {
-    // STORE8 r0, imm(255) — 2 операнда: регистр + immediate.
+    // STORE8 r0, imm(255) — 2 operands: register + immediate.
     let mut bytes = vec![0x07, 0x02, 0x00, 0x05, 0x01];
     bytes.extend_from_slice(&255u64.to_le_bytes());
 

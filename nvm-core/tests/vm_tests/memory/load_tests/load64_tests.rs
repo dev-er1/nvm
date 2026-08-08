@@ -1,4 +1,4 @@
-// Тесты на `LOAD64`.
+// Tests for `LOAD64`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

@@ -1,6 +1,6 @@
 // nvm-core/src/error.rs
 //
-//! Pretty-print ошибок.
+//! Pretty-printing of errors.
 use std::fmt::{self, Display, Formatter};
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
     vm::err::VMError,
 };
 
-/// Виды ошибок во всём крейте `nvm-core`.
+/// Error kinds across the whole `nvm-core` crate.
 #[derive(Debug)]
 pub enum NVMErrorKind {
     ISAError(ISAError),
@@ -33,11 +33,11 @@ impl Display for NVMErrorKind {
 pub struct NVMError {
     pub kind: NVMErrorKind,
 
-    /// Инструкция (опционально).
+    /// The instruction (optional).
     ///
-    /// Нужно для показа ошибки.
+    /// Needed to show the error.
     ///
-    /// ## Как будет выглядеть вывод ошибки с этим полем (пример):
+    /// ## How the error output looks with this field (example):
     /// ```text
     /// Error: expected type register, but got value type
     ///
@@ -46,9 +46,9 @@ pub struct NVMError {
     /// ```
     pub instruction: Option<Instruction>,
 
-    /// Есть ли поддержка ANSI-escape последовательностей.
-    /// Нужно для того, чтобы выводить ошибку с цветами если true,
-    /// и без цветов, если false.
+    /// Whether ANSI escape sequences are supported.
+    /// Needed to print the error with colors when true,
+    /// and without colors when false.
     have_ansi: bool,
 }
 
@@ -68,12 +68,12 @@ impl NVMError {
             if let Some(instr) = self.instruction {
                 println!("\x1b[36m-->\x1b[0m  {instr}");
 
-                // Количество стрелок указывающих на инструкцию.
+                // The number of arrows pointing at the instruction.
                 let arrows = "^".repeat(format!("{instr}").len());
                 println!("     \x1b[1m{arrows}\x1b[0m");
             }
         } else {
-            // Всё тоже самое только без ANSI-escape последовательностей.
+            // The same, but without ANSI escape sequences.
             println!("Error: {}.", self.kind);
             println!();
             if let Some(instr) = self.instruction {

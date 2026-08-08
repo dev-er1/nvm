@@ -1,6 +1,6 @@
 // nvm-asm/tests/codegen_tests.rs
 //
-// Интеграционные тесты кодогенератора.
+// Integration tests for the code generator.
 pub mod codegen_tests {
     mod encoder_tests;
     mod error_tests;
@@ -16,7 +16,7 @@ pub mod codegen_tests {
     use nvm_core::isa::operand::{Operand, OperandKind};
     use nvm_core::isa::register::Register;
 
-    // Полный конвейер: лексер + парсер + кодогенератор.
+    // Full pipeline: lexer + parser + code generator.
     pub fn codegen(src: &str) -> Result<Vec<Instruction>, CodegenError> {
         let source = SourceCode::new(src.to_string());
         let mut str_pool = StrPool::from_source(&source);
@@ -29,21 +29,21 @@ pub mod codegen_tests {
         codegen::generate(&ast, &str_pool)
     }
 
-    // Операнд-регистр.
+    // Register operand.
     pub fn reg(n: u8) -> Operand {
         Operand {
             kind: OperandKind::Register(Register(n)),
         }
     }
 
-    // Операнд-immediate.
+    // Immediate operand.
     pub fn imm(value: u64) -> Operand {
         Operand {
             kind: OperandKind::Immediate(value),
         }
     }
 
-    // Сравнение операндов (типы не реализуют PartialEq).
+    // Compares operands (the types don't implement PartialEq).
     fn same_operand(actual: &Operand, expected: &Operand) -> bool {
         match (actual.kind, expected.kind) {
             (OperandKind::Register(ar), OperandKind::Register(er)) => ar.0 == er.0,
@@ -52,7 +52,7 @@ pub mod codegen_tests {
         }
     }
 
-    // Проверяет, что фактический операнд равен ожидаемому.
+    // Checks that the actual operand is equal to the expected one.
     pub fn assert_operand_eq(actual: Option<Operand>, expected: Operand) {
         match actual {
             Some(actual) => assert!(
@@ -63,7 +63,7 @@ pub mod codegen_tests {
         }
     }
 
-    // Проверяет, что операнд отсутствует.
+    // Checks that the operand is absent.
     pub fn assert_operand_none(actual: Option<Operand>) {
         assert!(actual.is_none(), "expected no operand, got {actual:?}");
     }

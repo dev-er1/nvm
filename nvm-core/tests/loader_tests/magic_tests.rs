@@ -1,4 +1,4 @@
-// Тесты на magic-секцию `.nb`-файлов.
+// Tests on the magic section of `.nb`-files.
 use nvm_core::loader::err::LoaderErrorKind;
 
 use super::*;
@@ -104,11 +104,11 @@ fn magic_with_extra_bytes_before_instruction_stream_ok() {
 
 #[test]
 fn magic_exactly_five_bytes_with_version_rejected() {
-    // 5 байт magic + 5 байт версии = всего 10.
+    // 5 bytes of magic + 5 bytes of version = 10 in total.
     let mut data = b"NVMBC".to_vec();
     data.extend_from_slice(&0u16.to_le_bytes());
     data.extend_from_slice(&1u16.to_le_bytes());
-    data.push(0x00); // только один байт от patch-части версии
+    data.push(0x00); // only one byte of the version's patch part
 
     let err = match run_loader(data) {
         Err(e) => e,

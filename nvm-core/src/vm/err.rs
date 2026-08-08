@@ -1,52 +1,52 @@
 // nvm-core/src/vm/err.rs
 //
-//! Ошибки ВМ.
+//! VM errors.
 use std::fmt::{self, Display, Formatter};
 
 use crate::isa::operand::OperandKind;
 
-/// Виды ошибок.
+/// Error kinds.
 #[derive(Debug)]
 pub enum VMErrorKind {
-    /// Неправильное количество операндов.
+    /// Incorrect number of operands.
     ///
-    /// ## Пример ошибки
+    /// ## Example error
     /// ```text
     /// MOVE R1, R2, R3
     ///              ^^
     /// ```
-    /// В `MOVE` инструкции может использоваться только 2 операнда.
+    /// The `MOVE` instruction can use only 2 operands.
     IncorrectNumberOfOperands { expected: u8, got: u8 },
 
-    /// Неправильный тип операнда.
+    /// Incorrect operand type.
     ///
-    /// ## Пример ошибки
+    /// ## Example error
     /// ```text
     /// MOVE 0, R0
     ///      ^
     /// ```
-    /// В `MOVE` инструкции первый операнд должен быть всегда регистром.
+    /// In the `MOVE` instruction, the first operand must always be a register.
     IncorrectTypeOfOperand {
         expected: OperandKind,
         got: OperandKind,
     },
 
-    /// Неправильный адрес.
+    /// Invalid address.
     ///
-    /// Ошибка выдаётся если инструкция (например, `LOAD8`) пытается получить
-    /// значение в памяти по несуществующему адресу.
+    /// The error is raised if an instruction (for example, `LOAD8`) tries to get
+    /// a value from memory at a nonexistent address.
     InvalidAddress {
-        /// В какой адрес хотели "заглянуть".
+        /// The address that was attempted to "look into".
         got: usize,
 
-        /// Длина памяти.
+        /// The memory length.
         memory_length: usize,
     },
 
-    /// Деление на ноль.
+    /// Division by zero.
     DivisionByZero,
 
-    /// Стек вызовов пуст (RET без CALL).
+    /// The call stack is empty (RET without CALL).
     EmptyCallStack,
 }
 

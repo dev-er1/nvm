@@ -1,6 +1,6 @@
 // nvm-asm/tests/lexer_tests/position_tests.rs
 //
-// Тесты на позиции токенов в исходном коде.
+// Tests for token positions in the source code.
 use nvm_asm::lexer::err::LexerErrorKind;
 use nvm_asm::position::Position;
 
@@ -12,7 +12,7 @@ fn positions_on_the_first_line() {
 
     assert_eq!(tokens[0].position, Position::new(0, 4)); // MOVE
     assert_eq!(tokens[1].position, Position::new(5, 7)); // R0
-    assert_eq!(tokens[2].position, Position::new(7, 8)); // запятая
+    assert_eq!(tokens[2].position, Position::new(7, 8)); // comma
     assert_eq!(tokens[3].position, Position::new(9, 11)); // 42
     assert_eq!(tokens[4].position, Position::new(11, 11)); // End
 }
@@ -39,7 +39,7 @@ fn crlf_is_a_single_newline_token() {
 
     assert!(errors.is_empty());
 
-    // \r отбрасывается как пробел, \n даёт ровно один Newline.
+    // \r is discarded as whitespace, \n yields exactly one Newline.
     let newlines = tokens
         .iter()
         .filter(|t| matches!(t.kind, TokenKind::Newline))
@@ -53,7 +53,7 @@ fn comment_does_not_affect_following_positions() {
     let (tokens, errors) = tokenize("MOVE R0, R1 ; note\nCALL foo");
 
     assert!(errors.is_empty());
-    assert_eq!(tokens[4].position, Position::new(18, 19)); // \n после комментария
+    assert_eq!(tokens[4].position, Position::new(18, 19)); // \n after the comment
     assert_eq!(tokens[5].position, Position::new(19, 23)); // CALL
 }
 
@@ -67,7 +67,7 @@ fn end_token_is_at_source_end() {
 
 #[test]
 fn error_position_covers_whole_register_word() {
-    // "R256" занимает байты 0..4, ошибка покрывает всё слово.
+    // "R256" occupies bytes 0..4; the error covers the whole word.
     let (_, errors) = tokenize("R256");
 
     assert_eq!(errors.len(), 1);
@@ -98,15 +98,15 @@ fn positions_after_an_error_continue() {
 
     assert_eq!(errors.len(), 1);
     assert_eq!(errors[0].pos, Position::new(5, 6)); // !
-    // Разбор не остановился: R0 и End указывают на свои байты.
+    // Parsing didn't stop: R0 and End point to their own bytes.
     assert_eq!(tokens[1].position, Position::new(7, 9)); // R0
     assert_eq!(tokens[2].position, Position::new(9, 9)); // End
 }
 
 #[test]
 fn non_ascii_bytes_are_reported_per_byte() {
-    // Лексер работает только с ASCII: каждый байт UTF-8
-    // последовательности — отдельная ошибка на своём байте.
+// The lexer works with ASCII only: each byte of a UTF-8
+// sequence is a separate error on its own byte.
     let (tokens, errors) = tokenize("я");
 
     assert_eq!(errors.len(), 2);

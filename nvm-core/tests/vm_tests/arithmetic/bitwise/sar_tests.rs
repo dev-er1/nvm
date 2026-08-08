@@ -1,4 +1,4 @@
-// Тесты на `SAR`.
+// Tests for `SAR`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::bitwise::get_result;

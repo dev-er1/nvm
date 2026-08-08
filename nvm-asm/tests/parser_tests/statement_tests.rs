@@ -1,6 +1,6 @@
 // nvm-asm/tests/parser_tests/statement_tests.rs
 //
-// Тесты на разбор меток и инструкций.
+// Tests for parsing labels and instructions.
 use nvm_asm::parser::ast::{Operand, Statement};
 use nvm_core::isa::opcode::OperationCode;
 
@@ -140,7 +140,7 @@ fn label_reference_is_kept_in_ast() {
 
     match (&ast.program[0], &ast.program[1]) {
         (Statement::Instruction { instruction, .. }, Statement::Label { name, .. }) => {
-            // Ссылка на метку и её объявление указывают на одно имя.
+            // The label reference and its declaration point to the same name.
             assert!(matches!(instruction.operand1, Some(Operand::Label(id)) if id == *name));
         }
         _ => panic!("expected an instruction and a label"),

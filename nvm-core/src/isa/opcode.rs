@@ -1,443 +1,443 @@
 // nvm-core/src/isa/opcode.rs
 //
-//! # Опкоды NVM
+//! # NVM opcodes
 //!
-//! В этом модуле определены опкоды виртуальной машины NVM.
+//! This module defines the opcodes of the NVM virtual machine.
 //!
-//! ## Что такое "опкод"
+//! ## What is an "opcode"
 //!
-//! опкод (opcode, Operation Code) — это часть машинной инструкции,
-//! которая указывает процессору или виртуальной машине, какое именно
-//! действие нужно выполнить. (взято из: <https://ru.wikipedia.org/wiki/Код_операции>)
+//! An opcode (operation code) is a part of a machine instruction
+//! that tells the processor or the virtual machine which
+//! action to perform. (taken from <https://ru.wikipedia.org/wiki/Код_операции> and translated into English)
 //!
-//! В рамках NVM, опкод, это байт, описывающий операцию, которую нужно выполнить
-//! виртуальной машиной.
+//! Within NVM, an opcode is a byte describing the operation that
+//! the virtual machine must perform.
 //!
-//! ## Что такое "операнд"
+//! ## What is an "operand"
 //!
-//! Операнд — это аргумент инструкции. В зависимости от опкода операндом
-//! может быть регистр, непосредственная константа или адрес памяти.
+//! An operand is an argument of an instruction. Depending on the opcode, an operand
+//! can be a register, an immediate constant, or a memory address.
 //!
-//! ## Обозначения
+//! ## Notation
 //!
-//! В документации используются следующие обозначения:
+//! The documentation uses the following notation:
 //!
-//! - "dst" — операнд назначения (destination);
-//! - "src1" — первый исходный операнд;
-//! - "src2" — второй исходный операнд.
+//! - `dst` — the destination operand;
+//! - `src1` — the first source operand;
+//! - `src2` — the second source operand.
 use std::str::FromStr;
 
 use crate::isa::err::{ISAError, ISAErrorKind};
 
-/// Перечисление опкодов для ВМ.
+/// Enumeration of opcodes for the VM.
 #[repr(u8)]
 #[derive(Debug, Clone, Copy)]
 pub enum OperationCode {
-    /// Ничего не делает.
+    /// Does nothing.
     NOP,
 
-    /// Остановление ВМ.
+    /// Stops the VM.
     ///
     /// ```text
     /// EXIT
     /// ```
     EXIT,
 
-    /// Копирование значения из второго операнда в первый операнд.
+    /// Copies the value from the second operand into the first operand.
     ///
     /// ```text
     /// MOVE <dst>, <src1>
     /// ```
     ///
-    /// В dst запишется значение из src1.
+    /// The value from `src1` is written into `dst`.
     MOVE,
 
-    /// Загрузка 8 бит из памяти в операнд.
+    /// Loads 8 bits from memory into an operand.
     ///
     /// ```text
     /// LOAD8 <dst>, <src1>
     /// ```
     ///
-    /// В dst запишется 1 байт, считанный по адресу из src1.
+    /// 1 byte read from the address in `src1` is written into `dst`.
     LOAD8,
 
-    /// Загрузка 16 бит из памяти в операнд.
+    /// Loads 16 bits from memory into an operand.
     ///
     /// ```text
     /// LOAD16 <dst>, <src1>
     /// ```
     ///
-    /// В dst запишется 2 байта, считанные по адресу из src1.
+    /// 2 bytes read from the address in `src1` are written into `dst`.
     LOAD16,
 
-    /// Загрузка 32 бит из памяти в операнд.
+    /// Loads 32 bits from memory into an operand.
     ///
     /// ```text
     /// LOAD32 <dst>, <src1>
     /// ```
     ///
-    /// В dst запишется 4 байта, считанные по адресу из src1.
+    /// 4 bytes read from the address in `src1` are written into `dst`.
     LOAD32,
 
-    /// Загрузка 64 бит из памяти в операнд.
+    /// Loads 64 bits from memory into an operand.
     ///
     /// ```text
     /// LOAD64 <dst>, <src1>
     /// ```
     ///
-    /// В dst запишется 8 байт, считанные по адресу из src1.
+    /// 8 bytes read from the address in `src1` are written into `dst`.
     LOAD64,
 
-    /// Запись 8 бит из операнда в память.
+    /// Stores 8 bits from an operand into memory.
     ///
     /// ```text
     /// STORE8 <dst>, <src1>
     /// ```
     ///
-    /// По адресу из dst будет записан 1 байт из src1.
+    /// 1 byte from `src1` is written to the address in `dst`.
     STORE8,
 
-    /// Запись 16 бит из операнда в память.
+    /// Stores 16 bits from an operand into memory.
     ///
     /// ```text
     /// STORE16 <dst>, <src1>
     /// ```
     ///
-    /// По адресу из dst будет записано 2 байта из src1.
+    /// 2 bytes from `src1` are written to the address in `dst`.
     STORE16,
 
-    /// Запись 32 бит из операнда в память.
+    /// Stores 32 bits from an operand into memory.
     ///
     /// ```text
     /// STORE32 <dst>, <src1>
     /// ```
     ///
-    /// По адресу из dst будет записано 4 байта из src1.
+    /// 4 bytes from `src1` are written to the address in `dst`.
     STORE32,
 
-    /// Запись 64 бит из операнда в память.
+    /// Stores 64 bits from an operand into memory.
     ///
     /// ```text
     /// STORE64 <dst>, <src1>
     /// ```
     ///
-    /// По адресу из dst будет записано 8 байта из src1.
+    /// 8 bytes from `src1` are written to the address in `dst`.
     STORE64,
 
-    /// Сложение двух целочисленных значений.
+    /// Adds two integer values.
     ///
-    /// Складывает src1 и src2, после чего записывает результат в dst.
+    /// Adds `src1` and `src2`, then writes the result into `dst`.
     ///
     /// ```text
     /// IADD <dst>, <src1>, <src2>
     /// ```
     IADD,
 
-    /// Вычитание двух целочисленных значений.
+    /// Subtracts two integer values.
     ///
-    /// Вычитает src2 из src1 и записывает результат в dst.
+    /// Subtracts `src2` from `src1` and writes the result into `dst`.
     ///
     /// ```text
     /// ISUB <dst>, <src1>, <src2>
     /// ```
     ISUB,
 
-    /// Умножение двух целочисленных значений.
+    /// Multiplies two integer values.
     ///
-    /// Перемножает src1 и src2, после чего записывает результат в dst.
+    /// Multiplies `src1` and `src2`, then writes the result into `dst`.
     ///
     /// ```text
     /// IMUL <dst>, <src1>, <src2>
     /// ```
     IMUL,
 
-    /// Целочисленное знаковое деление.
+    /// Signed integer division.
     ///
-    /// Делит src1 на src2 и записывает результат в dst.
+    /// Divides `src1` by `src2` and writes the result into `dst`.
     ///
     /// ```text
     /// SDIV <dst>, <src1>, <src2>
     /// ```
     SDIV,
 
-    /// Целочисленное беззнаковое деление.
+    /// Unsigned integer division.
     ///
-    /// Делит src1 на src2 как беззнаковые значения и записывает результат в dst.
+    /// Divides `src1` by `src2` as unsigned values and writes the result into `dst`.
     ///
     /// ```text
     /// UDIV <dst>, <src1>, <src2>
     /// ```
     UDIV,
 
-    /// Остаток от знакового деления.
+    /// Remainder of signed division.
     ///
-    /// Вычисляет src1 % src2 и записывает результат в dst.
+    /// Computes `src1` % `src2` and writes the result into `dst`.
     ///
     /// ```text
     /// SREM <dst>, <src1>, <src2>
     /// ```
     SREM,
 
-    /// Остаток от беззнакового деления.
+    /// Remainder of unsigned division.
     ///
-    /// Вычисляет src1 % src2 как беззнаковые значения и записывает результат в dst.
+    /// Computes `src1` % `src2` as unsigned values and writes the result into `dst`.
     ///
     /// ```text
     /// UREM <dst>, <src1>, <src2>
     /// ```
     UREM,
 
-    /// Смена знака целочисленного значения.
+    /// Negates an integer value.
     ///
     /// ```text
     /// INEG <dst>, <src1>
     /// ```
     INEG,
 
-    /// Сложение двух чисел с плавающей точкой.
+    /// Adds two floating-point numbers.
     ///
-    /// Складывает src1 и src2, после чего записывает результат в dst.
+    /// Adds `src1` and `src2`, then writes the result into `dst`.
     ///
     /// ```text
     /// FADD <dst>, <src1>, <src2>
     /// ```
     FADD,
 
-    /// Вычитание двух чисел с плавающей точкой.
+    /// Subtracts two floating-point numbers.
     ///
-    /// Вычитает src2 из src1 и записывает результат в dst.
+    /// Subtracts `src2` from `src1` and writes the result into `dst`.
     ///
     /// ```text
     /// FSUB <dst>, <src1>, <src2>
     /// ```
     FSUB,
 
-    /// Умножение двух чисел с плавающей точкой.
+    /// Multiplies two floating-point numbers.
     ///
-    /// Перемножает src1 и src2, после чего записывает результат в dst.
+    /// Multiplies `src1` and `src2`, then writes the result into `dst`.
     ///
     /// ```text
     /// FMUL <dst>, <src1>, <src2>
     /// ```
     FMUL,
 
-    /// Деление двух чисел с плавающей точкой.
+    /// Divides two floating-point numbers.
     ///
-    /// Делит src1 на src2 и записывает результат в dst.
+    /// Divides `src1` by `src2` and writes the result into `dst`.
     ///
     /// ```text
     /// FDIV <dst>, <src1>, <src2>
     /// ```
     FDIV,
 
-    /// Остаток от деления двух чисел с плавающей точкой.
+    /// Remainder of division of two floating-point numbers.
     ///
-    /// Вычисляет остаток от деления src1 на src2 и записывает результат в dst.
+    /// Computes the remainder of dividing `src1` by `src2` and writes the result into `dst`.
     ///
     /// ```text
     /// FREM <dst>, <src1>, <src2>
     /// ```
     FREM,
 
-    /// Смена знака числа с плавающей точкой.
+    /// Negates a floating-point number.
     ///
     /// ```text
     /// FNEG <dst>, <src1>
     /// ```
     FNEG,
 
-    /// Побитовое И.
+    /// Bitwise AND.
     ///
     /// ```text
     /// AND <dst>, <src1>, <src2>
     /// ```
     AND,
 
-    /// Побитовое ИЛИ.
+    /// Bitwise OR.
     ///
     /// ```text
     /// OR <dst>, <src1>, <src2>
     /// ```
     OR,
 
-    /// Побитовое исключающее ИЛИ.
+    /// Bitwise XOR.
     ///
     /// ```text
     /// XOR <dst>, <src1>, <src2>
     /// ```
     XOR,
 
-    /// Побитовое НЕ.
+    /// Bitwise NOT.
     ///
     /// ```text
     /// NOT <dst>, <src1>
     /// ```
     NOT,
 
-    /// Логический сдвиг влево.
+    /// Logical shift left.
     ///
     /// ```text
     /// SHL <dst>, <src1>, <src2>
     /// ```
     SHL,
 
-    /// Логический сдвиг вправо.
+    /// Logical shift right.
     ///
     /// ```text
     /// SHR <dst>, <src1>, <src2>
     /// ```
     SHR,
 
-    /// Арифметический сдвиг вправо.
+    /// Arithmetic shift right.
     ///
     /// ```text
     /// SAR <dst>, <src1>, <src2>
     /// ```
     SAR,
 
-    /// Проверка на равенство.
+    /// Equality check.
     ///
-    /// Записывает 1 в dst, если src1 == src2, иначе 0.
+    /// Writes 1 into `dst` if `src1` == `src2`, otherwise 0.
     ///
     /// ```text
     /// IEQ <dst>, <src1>, <src2>
     /// ```
     IEQ,
 
-    /// Проверка на неравенство.
+    /// Inequality check.
     ///
     /// ```text
     /// INE <dst>, <src1>, <src2>
     /// ```
     INE,
 
-    /// Знаковое меньше.
+    /// Signed less-than.
     ///
     /// ```text
     /// SLT <dst>, <src1>, <src2>
     /// ```
     SLT,
 
-    /// Знаковое меньше либо равно.
+    /// Signed less-than or equal.
     ///
     /// ```text
     /// SLE <dst>, <src1>, <src2>
     /// ```
     SLE,
 
-    /// Знаковое больше.
+    /// Signed greater-than.
     ///
     /// ```text
     /// SGT <dst>, <src1>, <src2>
     /// ```
     SGT,
 
-    /// Знаковое больше либо равно.
+    /// Signed greater-than or equal.
     ///
     /// ```text
     /// SGE <dst>, <src1>, <src2>
     /// ```
     SGE,
 
-    /// Беззнаковое меньше.
+    /// Unsigned less-than.
     ///
     /// ```text
     /// ULT <dst>, <src1>, <src2>
     /// ```
     ULT,
 
-    /// Беззнаковое меньше либо равно.
+    /// Unsigned less-than or equal.
     ///
     /// ```text
     /// ULE <dst>, <src1>, <src2>
     /// ```
     ULE,
 
-    /// Беззнаковое больше.
+    /// Unsigned greater-than.
     ///
     /// ```text
     /// UGT <dst>, <src1>, <src2>
     /// ```
     UGT,
 
-    /// Беззнаковое больше либо равно.
+    /// Unsigned greater-than or equal.
     ///
     /// ```text
     /// UGE <dst>, <src1>, <src2>
     /// ```
     UGE,
 
-    /// Проверка на равенство.
+    /// Equality check.
     ///
     /// ```text
     /// FEQ <dst>, <src1>, <src2>
     /// ```
     FEQ,
 
-    /// Проверка на неравенство.
+    /// Inequality check.
     ///
     /// ```text
     /// FNE <dst>, <src1>, <src2>
     /// ```
     FNE,
 
-    /// Меньше.
+    /// Less-than.
     ///
     /// ```text
     /// FLT <dst>, <src1>, <src2>
     /// ```
     FLT,
 
-    /// Меньше либо равно.
+    /// Less-than or equal.
     ///
     /// ```text
     /// FLE <dst>, <src1>, <src2>
     /// ```
     FLE,
 
-    /// Больше.
+    /// Greater-than.
     ///
     /// ```text
     /// FGT <dst>, <src1>, <src2>
     /// ```
     FGT,
 
-    /// Больше либо равно.
+    /// Greater-than or equal.
     ///
     /// ```text
     /// FGE <dst>, <src1>, <src2>
     /// ```
     FGE,
 
-    /// Безусловный переход.
+    /// Unconditional jump.
     ///
     /// ```text
     /// JMP <offset>
     /// ```
     JMP,
 
-    /// Переход, если src1 == 0.
+    /// Jumps if `src1` == 0.
     ///
     /// ```text
     /// JZ <src1>, <offset>
     /// ```
     JZ,
 
-    /// Переход, если src1 != 0.
+    /// Jumps if `src1` != 0.
     ///
     /// ```text
     /// JNZ <src1>, <offset>
     /// ```
     JNZ,
 
-    /// Вызов подпрограммы.
+    /// Calls a subroutine.
     ///
     /// ```text
     /// CALL <offset>
     /// ```
     CALL,
 
-    /// Возврат из подпрограммы.
+    /// Returns from a subroutine.
     ///
     /// ```text
     /// RET
@@ -525,7 +525,7 @@ impl TryFrom<u8> for OperationCode {
     #[allow(clippy::missing_transmute_annotations)]
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if value <= OperationCode::RET as u8 {
-            // SAFETY: все значения от 0 до RET являются валидными вариантами enum.
+            // SAFETY: all values from 0 to RET are valid enum variants.
             Ok(unsafe { std::mem::transmute(value) })
         } else {
             Err(ISAError::new(ISAErrorKind::UnknownOperationCode(

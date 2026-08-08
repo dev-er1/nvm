@@ -1,10 +1,10 @@
 // nvm-core/src/vm/register_file.rs
 //
-//! # Хранилище регистров
+//! # Register file
 //!
-//! В этом модуле определено хранилище регистров виртуальной машины NVM.
+//! This module defines the register file of the NVM virtual machine.
 //!
-//! Каждый регистр хранит одно значение типа [`u64`].
+//! Each register holds a single value of type [`u64`].
 use std::{
     array,
     ops::{Index, IndexMut},
@@ -23,13 +23,13 @@ impl RegisterFile {
         }
     }
 
-    /// Создаёт хранилище регистров, используя указанный массив значений.
+    /// Creates a register file from the given array of values.
     pub fn from_registers(registers: [u64; 255]) -> Self {
         Self { registers }
     }
 }
 
-// Реализация трейтов для `RegisterFile`
+// Trait implementations for `RegisterFile`
 
 impl Default for RegisterFile {
     fn default() -> Self {
@@ -37,8 +37,8 @@ impl Default for RegisterFile {
     }
 }
 
-// Реализация Index позволяет обращаться к регистрам
-// через оператор индексации:
+// The `Index` implementation allows accessing the registers
+// via the indexing operator:
 //
 // ```
 // let value = registers[Register(0)];
@@ -51,8 +51,8 @@ impl Index<Register> for RegisterFile {
     }
 }
 
-// Реализация IndexMut позволяет изменять значения регистров
-// через оператор индексации:
+// The `IndexMut` implementation allows modifying register values
+// via the indexing operator:
 //
 // ```
 // registers[Register(0)] = Value::default();

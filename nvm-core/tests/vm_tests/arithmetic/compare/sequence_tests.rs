@@ -1,4 +1,4 @@
-// Тесты на сравнения.
+// Tests for comparisons.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

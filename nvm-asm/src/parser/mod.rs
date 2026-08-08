@@ -1,16 +1,16 @@
-//! # Парсер
+//! # Parser
 //!
-//! Парсер — это программа, которая превращает массив токенов в
-//! ***абстрактное синтаксическое дерево*** (***AST***).
+//! A parser is a program that turns an array of tokens into
+//! an ***abstract syntax tree*** (***AST***).
 //!
-//! ## Содержимое модуля
-//! - [`ast`] — AST;
-//! - [`err`] — ошибки парсера.
+//! ## Module contents
+//! - [`ast`] — the AST;
+//! - [`err`] — parser errors.
 //!
-//! ## Грамматика
+//! ## Grammar
 //!
-//! Программа состоит из строк. Каждая строка — это метка, инструкция
-//! или их комбинация:
+//! A program consists of lines. Each line is a label, an instruction,
+//! or a combination of the two:
 //!
 //! ```text
 //! program     := statement*
@@ -21,7 +21,7 @@
 //! operand     := REGISTER | INTEGER | FLOAT | IDENT
 //! ```
 //!
-//! Метка и инструкция могут находиться на одной строке: `main: MOVE R0, 1`.
+//! A label and an instruction may be on the same line: `main: MOVE R0, 1`.
 pub mod ast;
 pub mod err;
 
@@ -37,26 +37,25 @@ use self::{
     err::{ParserError, ParserErrorKind},
 };
 
-/// Парсер NVM Assembly.
+/// Parser for NVM Assembly.
 ///
-/// Получает поток токенов, строит из них [`AST`] и накапливает
-/// найденные ошибки в [`errors`](Self::errors).
+/// Takes a token stream, builds an [`AST`] from it, and accumulates
+/// the found errors in [`errors`](Self::errors).
 pub struct Parser {
-    /// Поток токенов.
+    /// The token stream.
     tokens: Vec<Token>,
 
-    /// Индекс текущего токена.
+    /// Index of the current token.
     index: usize,
 
-    /// Построенное абстрактное синтаксическое дерево.
+    /// The built abstract syntax tree.
     ast: AST,
 
-    /// Ошибки, обнаруженные при разборе.
+    /// Errors found during parsing.
     pub errors: Vec<ParserError>,
 }
 
 impl Parser {
-    /// Создаёт парсер с потоком токенов.
     pub fn new(tokens: Vec<Token>) -> Self {
         Self {
             tokens,
@@ -66,11 +65,11 @@ impl Parser {
         }
     }
 
-    /// Разбирает поток токенов.
+    /// Parses the token stream.
     ///
-    /// Результат складывается в [`ast`](Self::ast), ошибки — в
-    /// [`errors`](Self::errors). После ошибки разбор продолжается со
-    /// следующей строки.
+    /// The result is collected into [`ast`](Self::ast), errors — into
+    /// [`errors`](Self::errors). After an error, parsing continues from the
+    /// next line.
     pub fn parse(&mut self) -> &AST {
         loop {
             match self.peek_kind() {
@@ -93,10 +92,10 @@ impl Parser {
         &self.ast
     }
 
-    // ====== Разбор строк ======
+    // ====== Parsing lines ======
 
-    /// Разбирает метку: `name:` с необязательной инструкцией на той же
-    /// строке.
+    /// Parses a label: `name:` with an optional instruction on the same
+    /// line.
     fn parse_label(&mut self) {
         let name = match self.bump_kind() {
             TokenKind::Ident(id) => id,
@@ -118,7 +117,7 @@ impl Parser {
         }
     }
 
-    /// Разбирает инструкцию: `MNEMONIC оп1, оп2, оп3`.
+    /// Parses an instruction: `MNEMONIC op1, op2, op3`.
     fn parse_instruction(&mut self) {
         let start_pos = self.current_token().position;
         let opcode = match self.bump_kind() {
@@ -139,8 +138,8 @@ impl Parser {
                         self.bump();
                     }
                     Some(kind) if is_operand_start(kind) => {
-                        // Запятая пропущена, но операнд начинается — разбор
-                        // продолжаем, чтобы найти и остальные ошибки строки.
+                        // The comma is missing, but an operand begins — parsing
+                        // continues so that the rest of the line's errors are found too.
                         self.push_error_at_current(ParserErrorKind::ExpectedComma);
                     }
                     _ => break,
@@ -160,15 +159,15 @@ impl Parser {
             }
         }
 
-        // После полного набора операндов строка должна закончиться.
+        // After a full set of operands, the line must end.
         if count == expected as usize
             && !matches!(
                 self.peek_kind(),
                 Some(TokenKind::Newline) | Some(TokenKind::End) | None
             )
         {
-            // Лишний операнд — тот же IncorrectNumberOfOperands,
-            // поэтому считаем его через количество операндов до конца строки.
+            // An extra operand is the same IncorrectNumberOfOperands,
+            // so it is counted via the number of operands up to the end of the line.
             if self.peek_is_operand() {
                 let extra = self.count_operands_until_newline();
                 self.push_error(
@@ -226,9 +225,9 @@ impl Parser {
         });
     }
 
-    // ====== Вспомогательные функции ======
+    // ====== Helper functions ======
 
-    /// Пропускает токены до конца строки (включая разделитель строк).
+    /// Skips tokens up to the end of the line (including the line separator).
     fn skip_to_newline(&mut self) {
         loop {
             match self.peek_kind() {
@@ -244,19 +243,19 @@ impl Parser {
         }
     }
 
-    /// Добавляет ошибку в [`errors`](Self::errors)
-    /// с позицией текущего токена.
+    /// Adds an error to [`errors`](Self::errors)
+    /// with the position of the current token.
     fn push_error_at_current(&mut self, kind: ParserErrorKind) {
         let position = self.current_token().position;
         self.push_error(position, kind);
     }
 
-    /// Добавляет ошибку в [`errors`](Self::errors).
+    /// Adds an error to [`errors`](Self::errors).
     fn push_error(&mut self, position: Position, kind: ParserErrorKind) {
         self.errors.push(ParserError::new(kind, position));
     }
 
-    /// Возвращает отладочное представление текущего токена.
+    /// Returns the debug representation of the current token.
     fn current_kind_debug(&self) -> String {
         match self.peek_kind() {
             Some(kind) => format!("{kind:?}"),
@@ -264,7 +263,7 @@ impl Parser {
         }
     }
 
-    /// Является ли текущий токен началом операнда.
+    /// Whether the current token starts an operand.
     fn peek_is_operand(&self) -> bool {
         match self.peek_kind() {
             Some(kind) => is_operand_start(kind),
@@ -272,7 +271,7 @@ impl Parser {
         }
     }
 
-    /// Считает операнды подряд до конца строки (для лишних операндов).
+    /// Counts consecutive operands up to the end of the line (for extra operands).
     fn count_operands_until_newline(&self) -> usize {
         let mut extra = 0usize;
         let mut index = self.index;
@@ -313,10 +312,10 @@ impl Parser {
     }
 }
 
-/// Преобразует вид токена в операнд AST, если токен может быть
-/// операндом. Целые литералы "оборачиваются" в `u64` по правилам
-/// двоичного дополнения, литералы с плавающей точкой — в битовое
-/// представление (`f64::to_bits`).
+/// Converts a token kind into an AST operand if the token can be an
+/// operand. Integer literals are "wrapped" into `u64` per two's complement
+/// rules, floating-point literals — into their bit
+/// representation (`f64::to_bits`).
 fn operand_from_kind(kind: &TokenKind) -> Option<Operand> {
     match kind {
         TokenKind::Register(register) => Some(Operand::Register(*register)),
@@ -327,7 +326,7 @@ fn operand_from_kind(kind: &TokenKind) -> Option<Operand> {
     }
 }
 
-/// Является ли токен началом операнда.
+/// Whether the token starts an operand.
 fn is_operand_start(kind: &TokenKind) -> bool {
     matches!(
         kind,
@@ -335,7 +334,7 @@ fn is_operand_start(kind: &TokenKind) -> bool {
     )
 }
 
-/// Ожидаемое количество операндов у опкода.
+/// The expected number of operands for an opcode.
 fn operand_count(opcode: OperationCode) -> u8 {
     use OperationCode::*;
 
@@ -350,11 +349,11 @@ fn operand_count(opcode: OperationCode) -> u8 {
     }
 }
 
-/// Обязан ли приёмник (первый операнд) быть регистром.
+/// Whether the destination (the first operand) must be a register.
 ///
-/// Совпадает с сигнатурами [iserial](crate::lexer) и таблицей переходов
-/// исполнителя: приёмники `MOVE`, `LOAD*`, унарных и бинарных операций
-/// — только регистры.
+/// Matches the [iserial](crate::lexer) signatures and the executor's
+/// dispatch table: the destinations of `MOVE`, `LOAD*`, unary and binary
+/// operations — registers only.
 fn requires_register_dst(opcode: OperationCode) -> bool {
     use OperationCode::*;
 

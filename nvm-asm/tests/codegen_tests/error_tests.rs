@@ -1,6 +1,6 @@
 // nvm-asm/tests/codegen_tests/error_tests.rs
 //
-// Тесты на ошибки кодогенерации.
+// Tests for code generation errors.
 use nvm_asm::codegen::err::CodegenErrorKind;
 use nvm_asm::position::Position;
 
@@ -14,7 +14,7 @@ fn duplicate_label_is_reported() {
         err.kind,
         CodegenErrorKind::DuplicateLabel { ref name } if name == "a"
     ));
-    // Ошибка указывает на второе объявление метки.
+    // The error points to the second label declaration.
     assert_eq!(err.position, Position::new(7, 9));
 }
 
@@ -26,7 +26,7 @@ fn undefined_label_is_reported() {
         err.kind,
         CodegenErrorKind::UndefinedLabel { ref name } if name == "nowhere"
     ));
-    // Ошибка указывает на инструкцию со ссылкой.
+    // The error points to the instruction with the reference.
     assert_eq!(err.position, Position::new(0, 3));
 }
 
@@ -58,8 +58,8 @@ fn duplicate_label_message_contains_label_name() {
 
 #[test]
 fn duplicate_label_is_checked_before_undefined_reference() {
-    // Дубликат обнаруживается в первом проходе и перекрывает
-    // неопределённую ссылку во втором.
+// The duplicate is detected in the first pass and overrides
+// the undefined reference in the second.
     let err = codegen("a:\nJMP b\na:").expect_err("duplicate label must fail");
 
     assert!(matches!(err.kind, CodegenErrorKind::DuplicateLabel { .. }));
@@ -67,7 +67,7 @@ fn duplicate_label_is_checked_before_undefined_reference() {
 
 #[test]
 fn labels_are_case_sensitive() {
-    // "Loop" и "loop" — разные идентификаторы.
+    // "Loop" and "loop" are different identifiers.
     let err = codegen("JMP Loop\nloop:\nNOP").expect_err("case mismatch must fail");
 
     assert!(matches!(
@@ -84,7 +84,7 @@ fn undefined_label_in_second_operand() {
         err.kind,
         CodegenErrorKind::UndefinedLabel { ref name } if name == "nowhere"
     ));
-    // Ошибка указывает на инструкцию, а не на операнд.
+    // The error points to the instruction, not the operand.
     assert_eq!(err.position, Position::new(0, 2));
 }
 
@@ -117,14 +117,14 @@ fn duplicate_label_on_adjacent_lines_is_reported() {
         err.kind,
         CodegenErrorKind::DuplicateLabel { ref name } if name == "x"
     ));
-    // Позиция — второе объявление (после первого и перевода строки).
+    // The position is the second declaration (after the first and the newline).
     assert_eq!(err.position, Position::new(3, 5));
 }
 
 #[test]
 fn error_on_duplicate_label_then_reference_to_undefined_keeps_first_position() {
-    // Ошибка на дубликат метки в первом проходе имеет позицию
-    // второго объявления, даже если далее есть неопределённая ссылка.
+// The duplicate-label error in the first pass has the position of the
+// second declaration, even if an undefined reference follows.
     let err = codegen("a:\nJMP b\na:\nJMP c").expect_err("duplicate label must fail");
 
     assert!(matches!(err.kind, CodegenErrorKind::DuplicateLabel { .. }));

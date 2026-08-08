@@ -1,23 +1,23 @@
 //! # NVM ISA
 //!
-//! ISA (Instruction Set Architecture) в NVM — это спецификация набора инструкций
-//! виртуальной машины NVM. Она определяет:
+//! The ISA (Instruction Set Architecture) of NVM is the specification
+//! of the instruction set of the NVM virtual machine. It defines:
 //!
-//! - набор поддерживаемых инструкций;
-//! - формат их кодирования;
-//! - допустимые операнды;
-//! - представление данных;
-//! - модель памяти и регистров.
+//! - the set of supported instructions;
+//! - their encoding format;
+//! - the allowed operands;
+//! - the data representation;
+//! - the memory and register model.
 //!
-//! ISA описывает **что** должна выполнять виртуальная машина.
+//! The ISA describes **what** the virtual machine must do.
 //!
-//! ## Содержимое модуля
+//! ## Module contents
 //!
-//! - [`instruction`] — представление инструкции NVM;
-//! - [`opcode`] — коды операций (опкоды);
-//! - [`operand`] — представление операндов инструкций;
-//! - [`register`] — идентификаторы регистров виртуальной машины;
-//! - [`err`] — ошибки, связанные с ISA.
+//! - [`instruction`] — the representation of an NVM instruction;
+//! - [`opcode`] — operation codes (opcodes);
+//! - [`operand`] — the representation of instruction operands;
+//! - [`register`] — virtual machine register identifiers;
+//! - [`err`] — errors related to the ISA.
 pub mod err;
 pub mod instruction;
 pub mod opcode;

@@ -1,4 +1,4 @@
-// Тесты на `SDIV`.
+// Tests for `SDIV`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::integer_arithmetic::get_result;

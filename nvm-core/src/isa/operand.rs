@@ -1,11 +1,11 @@
 // nvm-core/src/isa/operand.rs
 //
-//! # Операнды NVM
+//! # NVM operands
 //!
-//! В этом модуле определены типы, описывающие операнды инструкций.
+//! This module defines the types that describe instruction operands.
 //!
-//! Операнд — это аргумент инструкции. В зависимости от инструкции
-//! операндом может быть регистр или непосредственное значение.
+//! An operand is an instruction argument. Depending on the instruction,
+//! an operand can be a register or an immediate value.
 use std::fmt::{self, Display, Formatter};
 
 use crate::{
@@ -13,17 +13,17 @@ use crate::{
     vm::err::{VMError, VMErrorKind},
 };
 
-/// # Вид операнда.
+/// # Operand kind.
 ///
-/// Видов операнда 2:
-/// 1. Регистр.
-/// 2. Immediate-значение.
+/// There are 2 operand kinds:
+/// 1. Register.
+/// 2. Immediate value.
 #[derive(Debug, Clone, Copy)]
 pub enum OperandKind {
-    /// Регистр виртуальной машины.
+    /// A virtual machine register.
     Register(Register),
 
-    /// Непосредственное значение (immediate).
+    /// An immediate value.
     Immediate(u64),
 }
 
@@ -37,9 +37,9 @@ impl Display for OperandKind {
 }
 
 impl OperandKind {
-    /// Превращает `OperandKind` в строку с типом операнда.
+    /// Converts an `OperandKind` into a string with the operand type.
     ///
-    /// Нужно для [`vm::err`](crate::vm::err).
+    /// Needed for [`vm::err`](crate::vm::err).
     pub fn kind(&self) -> &str {
         match self {
             Self::Immediate(_) => "value",

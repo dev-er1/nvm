@@ -1,4 +1,4 @@
-// Тесты на `MOVE`.
+// Tests for `MOVE`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

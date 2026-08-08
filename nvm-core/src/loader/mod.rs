@@ -1,7 +1,7 @@
-//! # Загрузчик файлов с форматом NVM Bytecode
+//! # Loader of files in the NVM Bytecode format
 //!
-//! В этом модуле реализован загрузчик `.nb`-файлов,
-//! с последующим преобразованием в [`Vec<Instruction>`].
+//! This module implements the loader of `.nb` files,
+//! with conversion into a [`Vec<Instruction>`].
 pub mod err;
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
 };
 
 pub struct NVMLoader {
-    /// Исходный код — просто массив байт.
+    /// The source code — just a byte array.
     pub src: Vec<u8>,
 }
 
@@ -22,9 +22,9 @@ impl NVMLoader {
 
     #[allow(clippy::cmp_owned)]
     pub fn transpile(&self) -> Result<Vec<Instruction>, LoaderError> {
-        // ====== Проверки на правильность файла ======
+        // ====== File validity checks ======
 
-        // Минимальный размер: 5 байт magic + 6 байт версия = 11.
+        // The minimum size: 5 magic bytes + 6 version bytes = 11.
         if self.src.len() < 11 {
             return Err(LoaderError::new(
                 LoaderErrorKind::FileIsNotInNVMBytecodeFormat {
@@ -33,7 +33,7 @@ impl NVMLoader {
             ));
         }
 
-        // Проверка на magic.
+        // Magic check.
         if &self.src[..5] != b"NVMBC" {
             return Err(LoaderError::new(
                 LoaderErrorKind::FileIsNotInNVMBytecodeFormat {
@@ -42,7 +42,7 @@ impl NVMLoader {
             ));
         }
 
-        // Парсинг минимальной версии NVM.
+        // Parse the minimum NVM version.
         let first = u16::from_le_bytes([self.src[5], self.src[6]]);
         let second = u16::from_le_bytes([self.src[7], self.src[8]]);
         let third = u16::from_le_bytes([self.src[9], self.src[10]]);
@@ -55,13 +55,13 @@ impl NVMLoader {
                 vm_version: NVM_VERSION.to_string(),
             }));
         }
-        // ====== Парсинг инструкций ======
+        // ====== Instruction parsing ======
 
         let mut instructions = Vec::new();
         let mut offset = 11;
 
         while offset < self.src.len() {
-            // Каждая инструкция требует минимум 2 байта (опкод + количество операндов).
+            // Each instruction requires at least 2 bytes (opcode + operand count).
             if offset + 2 > self.src.len() {
                 return Err(LoaderError::new(LoaderErrorKind::UnexpectedEndOfFile {
                     needed: 2,
@@ -83,8 +83,8 @@ impl NVMLoader {
                 }));
             }
 
-            // Вычисляем полный размер инструкции.
-            let mut instr_size = 2; // опкод + operand_count
+            // Compute the full instruction size.
+            let mut instr_size = 2; // opcode + operand_count
             let mut pos = offset + 2;
 
             for _ in 0..operand_count {
@@ -96,8 +96,8 @@ impl NVMLoader {
                 }
 
                 let op_size = match self.src[pos] {
-                    0x00 => 2, // tag + 1 байт регистр
-                    0x01 => 9, // tag + 8 байт immediate
+                    0x00 => 2, // tag + 1-byte register
+                    0x01 => 9, // tag + 8-byte immediate
                     tag => {
                         return Err(LoaderError::new(LoaderErrorKind::UnknownOperandTag {
                             byte: tag,

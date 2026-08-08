@@ -1,6 +1,6 @@
 // nvm-asm/tests/parser_tests/error_tests.rs
 //
-// Тесты на ошибки парсера и восстановление после них.
+// Tests for parser errors and recovery after them.
 use nvm_asm::parser::ast::Statement;
 use nvm_asm::parser::err::ParserErrorKind;
 
@@ -15,7 +15,7 @@ fn label_without_colon_is_an_error() {
         errors[0].kind,
         ParserErrorKind::ExpectedLabelColon
     ));
-    // Строка пропущена, но разбор продолжается: инструкция ниже разобрана.
+    // The line is skipped, but parsing continues: the instruction below was parsed.
     assert_eq!(ast.program.len(), 1);
 }
 
@@ -26,7 +26,7 @@ fn missing_comma_between_operands() {
     assert_eq!(errors.len(), 1);
     assert!(matches!(errors[0].kind, ParserErrorKind::ExpectedComma));
 
-    // Операнды разобраны несмотря на ошибку.
+    // The operands were parsed despite the error.
     assert_eq!(ast.program.len(), 1);
     assert!(matches!(ast.program[0], Statement::Instruction { .. }));
 }
@@ -70,7 +70,7 @@ fn destination_must_be_a_register() {
         errors[0].kind,
         ParserErrorKind::ExpectedRegisterOperand { .. }
     ));
-    // Инструкция всё равно попадает в AST, ошибка — только диагностика.
+    // The instruction still ends up in the AST; the error is only diagnostics.
     assert_eq!(ast.program.len(), 1);
 }
 
@@ -121,7 +121,7 @@ fn error_positions_point_to_the_culprit() {
     let (_, errors) = parse("MOVE R0\n");
 
     assert_eq!(errors.len(), 1);
-    // Ошибка о недостающих операндах указывает на начало инструкции.
+    // The missing-operand error points to the start of the instruction.
     assert_eq!(errors[0].position.start, 0);
     assert_eq!(errors[0].position.end, 4);
 }
@@ -131,7 +131,7 @@ fn recovery_continues_after_an_error() {
     let (ast, errors) = parse("MOVE R0\nNOP\nRET");
 
     assert_eq!(errors.len(), 1);
-    // Строки после ошибочной разобраны.
+    // The lines after the erroneous one were parsed.
     assert_eq!(ast.program.len(), 2);
     assert!(matches!(ast.program[0], Statement::Instruction { .. }));
     assert!(matches!(ast.program[1], Statement::Instruction { .. }));

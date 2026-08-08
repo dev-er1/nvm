@@ -1,43 +1,43 @@
 // nvm-core/src/vm/memory.rs
 //
-//! # Память NVM
+//! # NVM memory
 //!
-//! В этом модуле определена память виртуальной машины NVM.
+//! This module defines the memory of the NVM.
 //!
-//! Память NVM представляет собой непрерывную последовательность байт.
-//! Каждая ячейка памяти имеет собственный адрес, начиная с `0`.
+//! NVM memory is a contiguous sequence of bytes. Each memory cell has
+//! its own address, starting from `0`.
 //!
-//! Доступ к памяти осуществляется через инструкции семейства
-//! `LOAD*` и `STORE*`.
+//! Memory is accessed via the instructions of the `LOAD*` and `STORE*`
+//! families.
 //!
-//! ## Представление памяти
+//! ## Memory representation
 //!
-//! Внутри виртуальной машины память хранится в виде массива байт:
+//! Inside the VM, memory is stored as a byte array:
 //!
 //! ```text
-//! Адрес:   0    1    2    3    ...
-//!        +----+----+----+----+
-//! Данные | 12 | FF | 00 | A5 |
-//!        +----+----+----+----+
+//! Address:    0    1    2    3    ...
+//!           +----+----+----+----+
+//! Data      | 12 | FF | 00 | A5 |
+//!           +----+----+----+----+
 //! ```
 //!
-//! Такой подход позволяет хранить значения любого размера
-//! (`u8`, `u16`, `u32`, `u64` и т.д.).
+//! This approach allows storing values of any size
+//! (`u8`, `u16`, `u32`, `u64` etc.).
 use std::ops::Index;
 
 use crate::isa::register::Register;
 
-/// Память виртуальной машины.
+/// The memory of the virtual machine.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NVMMemory {
-    /// Последовательность байт памяти.
+    /// The sequence of memory bytes.
     data: Vec<u8>,
 }
 
 impl NVMMemory {
-    /// Создаёт память указанного размера.
+    /// Creates memory of the given size.
     ///
-    /// Все байты инициализируются нулём.
+    /// All bytes are initialized to zero.
     pub fn new(size: usize) -> Self {
         Self {
             data: vec![0; size],
@@ -51,7 +51,7 @@ impl NVMMemory {
 
     // ================== load_* ==================
 
-    /// Загружает 8-битное беззнаковое значение из памяти.
+    /// Loads an 8-bit unsigned value from memory.
     pub fn load_u8(&self, address: usize) -> Option<u8> {
         self.data.get(address).copied()
     }
@@ -74,7 +74,7 @@ impl NVMMemory {
         ))
     }
 
-    /// Загружает 8-битное знаковое значение из памяти.
+    /// Loads an 8-bit signed value from memory.
     pub fn load_i8(&self, address: usize) -> Option<i8> {
         Some(*self.data.get(address)? as i8)
     }
@@ -97,7 +97,7 @@ impl NVMMemory {
         ))
     }
 
-    /// Загружает 32-битное дробное значение из памяти.
+    /// Loads a 32-bit floating-point value from memory.
     pub fn load_f32(&self, address: usize) -> Option<f32> {
         Some(f32::from_le_bytes(
             self.data.get(address..address + 4)?.try_into().unwrap(),
@@ -112,7 +112,7 @@ impl NVMMemory {
 
     // ================== store_* ==================
 
-    /// Записывает 8-битное беззнаковое значение в память.
+    /// Writes an 8-bit unsigned value to memory.
     pub fn store_u8(&mut self, address: usize, value: u8) -> Option<()> {
         *self.data.get_mut(address)? = value;
         Some(())
@@ -142,7 +142,7 @@ impl NVMMemory {
         Some(())
     }
 
-    /// Записывает 8-битное знаковое значение в память.
+    /// Writes an 8-bit signed value to memory.
     pub fn store_i8(&mut self, address: usize, value: i8) -> Option<()> {
         self.store_u8(address, value as u8)
     }
@@ -171,7 +171,7 @@ impl NVMMemory {
         Some(())
     }
 
-    /// Записывает 32-битное число с плавающей точкой в память.
+    /// Writes a 32-bit floating-point value to memory.
     pub fn store_f32(&mut self, address: usize, value: f32) -> Option<()> {
         self.data
             .get_mut(address..address + 4)?
@@ -180,7 +180,7 @@ impl NVMMemory {
         Some(())
     }
 
-    /// Записывает 64-битное число с плавающей точкой в память.
+    /// Writes a 64-bit floating-point value to memory.
     pub fn store_f64(&mut self, address: usize, value: f64) -> Option<()> {
         self.data
             .get_mut(address..address + 8)?
@@ -190,8 +190,8 @@ impl NVMMemory {
     }
 }
 
-// Реализация Index позволяет обращаться к регистрам
-// через оператор индексации:
+// The `Index` implementation allows accessing the memory cells
+// via the indexing operator with a register number:
 //
 // ```
 // let value = memory[Register(0)];

@@ -1,4 +1,4 @@
-// Тесты на операции сравнения.
+// Tests for comparison operations.
 pub mod equality_tests;
 pub mod float_equality_tests;
 pub mod float_ordered_tests;

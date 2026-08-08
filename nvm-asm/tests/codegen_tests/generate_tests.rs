@@ -1,6 +1,6 @@
 // nvm-asm/tests/codegen_tests/generate_tests.rs
 //
-// Тесты на генерацию инструкций из AST.
+// Tests for generating instructions from the AST.
 use nvm_core::isa::opcode::OperationCode;
 
 use super::*;
@@ -25,7 +25,7 @@ fn label_points_to_next_instruction() {
         codegen("begin:\nMOVE R0, 1\nJMP begin\nJMP end\nend:\nRET").expect("valid program");
 
     assert_eq!(program.len(), 4);
-    // "begin" стоит перед MOVE (индекс 0), "end" — перед RET (индекс 3).
+    // "begin" comes before MOVE (index 0), "end" — before RET (index 3).
     assert!(matches!(program[1].opcode, OperationCode::JMP));
     assert_operand_eq(program[1].operand1, imm(0));
     assert!(matches!(program[2].opcode, OperationCode::JMP));
@@ -115,8 +115,8 @@ fn label_after_last_instruction() {
 
     assert_eq!(program.len(), 1);
     assert!(matches!(program[0].opcode, OperationCode::JMP));
-    // Метка стоит после фина — переход на индекс, равный длине программы
-    // (такой jump завершает выполнение).
+// The label is after the final — the jump targets an index equal to the program length
+// (such a jump terminates execution).
     assert_operand_eq(program[0].operand1, imm(1));
 }
 
@@ -183,7 +183,7 @@ fn chained_jumps_resolve_in_order() {
     let program = codegen("a:\nJMP b\nb:\nJMP c\nc:\nRET").expect("valid program");
 
     assert_eq!(program.len(), 3);
-    // a -> 0 (первая инструкция), b -> 1, c -> 2 (последняя).
+    // a -> 0 (first instruction), b -> 1, c -> 2 (last).
     assert!(matches!(program[0].opcode, OperationCode::JMP));
     assert_operand_eq(program[0].operand1, imm(1));
     assert!(matches!(program[1].opcode, OperationCode::JMP));
@@ -195,7 +195,7 @@ fn label_and_instruction_on_one_line_resolves() {
     let program = codegen("here: NOP\nJMP here").expect("valid program");
 
     assert_eq!(program.len(), 2);
-    // Метка на той же строке перед NOP — точка перехода на индекс 0.
+    // The label on the same line before NOP — the jump target is index 0.
     assert!(matches!(program[1].opcode, OperationCode::JMP));
     assert_operand_eq(program[1].operand1, imm(0));
 }
@@ -237,7 +237,7 @@ fn labels_differ_by_case() {
     let program = codegen("A:\nMOVE R0, 1\na:\nJMP A").expect("valid program");
 
     assert_eq!(program.len(), 2);
-    // "A" и "a" — разные метки: переход по "A" ведёт на индекс 0.
+    // "A" and "a" are different labels: jumping on "A" goes to index 0.
     assert!(matches!(program[1].opcode, OperationCode::JMP));
     assert_operand_eq(program[1].operand1, imm(0));
 }
@@ -256,7 +256,7 @@ fn long_program_resolves_distant_labels() {
     let program = codegen(&src).expect("valid program");
 
     assert_eq!(program.len(), 22);
-    // "start" -> 0 (первая инструкция), "mid" -> 11 (перед "JMP start").
+    // "start" -> 0 (first instruction), "mid" -> 11 (before "JMP start").
     assert!(matches!(program[0].opcode, OperationCode::JMP));
     assert_operand_eq(program[0].operand1, imm(11));
     assert!(matches!(program[11].opcode, OperationCode::JMP));

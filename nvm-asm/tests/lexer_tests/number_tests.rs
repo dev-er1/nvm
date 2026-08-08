@@ -1,6 +1,6 @@
 // nvm-asm/tests/lexer_tests/number_tests.rs
 //
-// Тесты на распознавание чисел: целых и с плавающей точкой.
+// Tests for number recognition: integers and floating-point numbers.
 use nvm_asm::lexer::err::LexerErrorKind;
 
 use super::*;
@@ -14,7 +14,7 @@ fn integer_literals() {
     assert!(matches!(tokens[1].kind, TokenKind::Integer(42)));
     assert!(matches!(tokens[2].kind, TokenKind::Integer(-7)));
     assert!(matches!(tokens[3].kind, TokenKind::Integer(7)));
-    // Ведущие нули не мешают разбору.
+    // Leading zeros don't interfere with parsing.
     assert!(matches!(tokens[4].kind, TokenKind::Integer(7)));
 }
 
@@ -44,7 +44,7 @@ fn dot_without_following_digit_ends_the_number() {
     let (tokens, errors) = tokenize("5. 5.5");
 
     assert!(errors.is_empty());
-    // Точка в конце не даёт float, "5." — это 5 и отдельная точка.
+    // A trailing dot doesn't produce a float; "5." is 5 plus a separate dot.
     assert!(matches!(tokens[0].kind, TokenKind::Integer(5)));
     assert!(matches!(tokens[1].kind, TokenKind::Dot));
     assert!(matches!(tokens[2].kind, TokenKind::Float(v) if v == 5.5));
@@ -55,7 +55,7 @@ fn dot_after_float_starts_a_new_number() {
     let (tokens, errors) = tokenize("5.5.5");
 
     assert!(errors.is_empty());
-    // Точка перед цифрой начинает новое дробное число (.5).
+    // A dot before a digit starts a new fractional number (.5).
     assert!(matches!(tokens[0].kind, TokenKind::Float(v) if v == 5.5));
     assert!(matches!(tokens[1].kind, TokenKind::Float(v) if v == 0.5));
     assert!(matches!(tokens[2].kind, TokenKind::End));

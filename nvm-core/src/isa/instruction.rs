@@ -1,13 +1,13 @@
 // nvm-core/src/isa/instruction.rs
 //
-//! # Представление инструкции NVM
+//! # Representation of an NVM instruction
 //!
-//! В этом модуле определена структура одной инструкции виртуальной машины.
+//! This module defines the structure of a single virtual machine instruction.
 //!
-//! Инструкция является минимальной единицей выполнения программы.
-//! Каждая инструкция состоит из:
-//! - одного опкода;
-//! - от нуля до трёх операндов.
+//! An instruction is the smallest unit of program execution.
+//! Each instruction consists of:
+//! - one opcode;
+//! - from zero to three operands.
 use std::fmt::{self, Display, Formatter};
 
 use crate::{
@@ -20,29 +20,29 @@ use crate::{
     vm::err::{VMError, VMErrorKind},
 };
 
-/// Представление одной инструкции NVM.
+/// Representation of a single NVM instruction.
 ///
-/// Инструкция состоит из опкода и до трёх операндов.
+/// An instruction consists of an opcode and up to three operands.
 #[derive(Debug, Clone, Copy)]
 pub struct Instruction {
-    /// Код операции.
+    /// The operation code.
     pub opcode: OperationCode,
 
-    /// Первый операнд инструкции.
+    /// The first operand of the instruction.
     pub operand1: Option<Operand>,
 
-    /// Второй операнд.
+    /// The second operand.
     pub operand2: Option<Operand>,
 
-    /// Третий операнд.
+    /// The third operand.
     pub operand3: Option<Operand>,
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match (self.operand1, self.operand2, self.operand3) {
-            // Не реализуем `Display` для `OperationCode` так как опкоды
-            // уже будут выглядеть как и планировались.
+            // We do not implement `Display` for `OperationCode` because the opcodes
+            // will already look as intended.
             (Some(op1), Some(op2), Some(op3)) => write!(f, "{:?} {op1}, {op2}, {op3}", self.opcode),
             (Some(op1), Some(op2), None) => write!(f, "{:?} {op1}, {op2}", self.opcode),
             (Some(op1), None, None) => write!(f, "{:?} {op1}", self.opcode),
@@ -53,9 +53,9 @@ impl Display for Instruction {
 }
 
 impl Instruction {
-    // ==== Вспомогательные функции для ВМ ====
+    // ==== Helper functions for the VM ====
 
-    /// Возвращает количество операндов.
+    /// Returns the number of operands.
     pub fn operand_count(&self) -> usize {
         [self.operand1, self.operand2, self.operand3]
             .into_iter()

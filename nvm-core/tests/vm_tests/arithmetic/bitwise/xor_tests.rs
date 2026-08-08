@@ -1,4 +1,4 @@
-// Тесты на `XOR`.
+// Tests for `XOR`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::bitwise::get_result;

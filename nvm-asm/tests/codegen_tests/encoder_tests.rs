@@ -1,6 +1,6 @@
 // nvm-asm/tests/codegen_tests/encoder_tests.rs
 //
-// Тесты на генерацию `.nb`-файлов (подмодуль `codegen::encoder`).
+// Tests for `.nb` file generation (the `codegen::encoder` submodule).
 use nvm_asm::codegen::encoder;
 use nvm_core::{
     NVM_VERSION,
@@ -10,7 +10,7 @@ use nvm_core::{
 
 use super::*;
 
-// Собирает инструкцию из опкода и до трёх операндов.
+// Builds an instruction from an opcode and up to three operands.
 fn instr(opcode: OperationCode, operands: [Option<Operand>; 3]) -> Instruction {
     Instruction {
         opcode,
@@ -20,14 +20,14 @@ fn instr(opcode: OperationCode, operands: [Option<Operand>; 3]) -> Instruction {
     }
 }
 
-// Прогоняет байты через загрузчик `.nb`-файлов.
+// Runs bytes through the `.nb` file loader.
 fn load(bytes: &[u8]) -> Vec<Instruction> {
     NVMLoader::new(bytes.to_vec())
         .transpile()
         .expect("valid bytecode")
 }
 
-// Сравнивает программы через Display (типы не реализуют PartialEq).
+// Compares programs via Display (the types don't implement PartialEq).
 fn assert_programs_eq(actual: &[Instruction], expected: &[Instruction]) {
     assert_eq!(actual.len(), expected.len());
     for (actual, expected) in actual.iter().zip(expected) {
@@ -144,7 +144,7 @@ fn immediate_zero_writes_eight_zero_bytes() {
     )];
     let bytes = encoder::encode(&program);
 
-    // 11 заголовок + 2 (опкод, счётчик) + 2 (тег, регистр) = 15: тег immediate.
+    // 11 header + 2 (opcode, count) + 2 (tag, register) = 15: the immediate tag.
     assert_eq!(bytes[15], 0x01);
     assert_eq!(&bytes[16..], &[0, 0, 0, 0, 0, 0, 0, 0]);
 }
@@ -195,7 +195,7 @@ fn mixed_program_writes_instructions_in_order() {
     ];
     let bytes = encoder::encode(&program);
 
-    // NOP (2 байта) + MOVE reg,imm (13 байт) + EXIT (2 байта).
+    // NOP (2 bytes) + MOVE reg,imm (13 bytes) + EXIT (2 bytes).
     assert_eq!(bytes.len(), 11 + 2 + 13 + 2);
     assert_eq!(bytes[11], 0x00); // NOP
     assert_eq!(bytes[13], OperationCode::MOVE as u8); // MOVE

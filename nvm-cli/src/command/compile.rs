@@ -1,6 +1,6 @@
 // nvm-cli/src/command/compile.rs
 //
-//! Исполнение команды `compile`.
+//! Execution of the `compile` command.
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -62,15 +62,15 @@ pub fn compile(args: CompileArguments) -> i32 {
     0
 }
 
-/// Куда по умолчанию записывать результат: тот же путь, что у исходника,
-/// но с расширением `.nb`.
+/// Where to write the result by default: the same path as the source,
+/// but with the `.nb` extension.
 fn default_output(input: &str) -> PathBuf {
     Path::new(input).with_extension("nb")
 }
 
-/// Выводит ошибку чтения/записи файла в том же стиле, что и остальные ошибки CLI.
+/// Prints a file read/write error in the same style as the other CLI errors.
 fn report_io_error(path: &str, e: std::io::Error) {
-    // Добавляем путь к сообщению, т.к. сам io-ошибка его не знает.
+    // Adding the path to the message, since the io error itself doesn't know it.
     let e = std::io::Error::new(e.kind(), format!("{path}: {e}"));
     NVMError::new(NVMErrorKind::IoError(e), None, ansi_supported()).report();
 }

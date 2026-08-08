@@ -1,22 +1,22 @@
 // nvm-ffi/src/lib.rs
 //
-//! C ABI обёртка над `libnvm`.
+//! C ABI wrapper over `libnvm`.
 //!
-//! Даёт возможность использовать NVM из C, C++ и других языков
-//! (Python через `ctypes`, Node через FFI, Go через `cgo` и т.д.).
+//! Enables using NVM from C, C++ and other languages
+//! (Python via `ctypes`, Node via FFI, Go via `cgo`, etc.).
 //!
-//! ## Конвенции
+//! ## Conventions
 //!
-//! - Все функции возвращают `0` (обёртка `NVM_FFI_OK`) при успехе и
-//!   ненулевой код ошибки при неудаче (см. константы `NVM_FFI_ERR_*`).
-//! - Текст последней ошибки потока получается через
-//!   [`nvm_last_error`]. Ошибка живёт до следующего вызова FFI.
-//! - Никаких указателей, выделенных Rust-ом, наружу не отдаём:
-//!   результаты пишутся в буфер, предоставленный потребителем
-//!   (паттерн "два вызова": сначала узнать размер, потом записать).
-//! - Буферы передаются как `(указатель, ёмкость)`. При ошибке
-//!   "буфер мал" в `written` всё равно записывается требуемый размер.
-//! - Паника через FFI — UB, поэтому тела функций обёрнуты в
+//! - All functions return `0` (the wrapper `NVM_FFI_OK`) on success and
+//!   a non-zero error code on failure (see the `NVM_FFI_ERR_*` constants).
+//! - The text of the last thread error is obtained via
+//!   [`nvm_last_error`]. The error lives until the next FFI call.
+//! - No Rust-allocated pointers are passed out:
+//!   results are written into a consumer-provided buffer
+//!   (the "two calls" pattern: first find out the size, then write).
+//! - Buffers are passed as `(pointer, capacity)`. On the
+//!   "buffer too small" error, the required size is still written into `written`.
+//! - A panic across FFI is UB, so the function bodies are wrapped in
 //!   [`catch_unwind`].
 use std::{
     cell::RefCell,
@@ -28,36 +28,36 @@ use std::{
 
 use libnvm::{BytecodeSource, DEFAULT_MEMORY_SIZE, NVM_VERSION, NVMAssembler, NVMError, NVMl};
 
-/// Успех.
+/// Success.
 pub const NVM_FFI_OK: i32 = 0;
 
-/// Ошибка компиляции NVM Assembly.
+/// An NVM Assembly compilation error.
 pub const NVM_FFI_ERR_COMPILE: i32 = 1;
 
-/// Ошибка исполнения байт-кода.
+/// A bytecode execution error.
 pub const NVM_FFI_ERR_RUN: i32 = 2;
 
-/// Нарушение контракта FFI (NULL-указатель, маленький буфер и т.д.).
+/// An FFI contract violation (NULL pointer, small buffer, etc.).
 pub const NVM_FFI_ERR_CONTRACT: i32 = 3;
 
-/// Паника внутри FFI.
+/// A panic inside FFI.
 pub const NVM_FFI_ERR_PANIC: i32 = 4;
 
 const PANIC_MESSAGE: &str = "panic in nvm-ffi";
 
 thread_local! {
-    /// Последний результат компиляции ([`nvm_compile`]).
+    /// The last compilation result ([`nvm_compile`]).
     static LAST_COMPILED: RefCell<Option<Vec<u8>>> = const { RefCell::new(None) };
 
-    /// Текст последней ошибки текущего потока.
+    /// The text of the last error of the current thread.
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
-/// `NVM_VERSION` в виде C-строки (с завершающим NUL).
+/// `NVM_VERSION` as a C string (with a terminating NUL).
 static VERSION_C: LazyLock<CString> =
     LazyLock::new(|| CString::new(NVM_VERSION).expect("NVM_VERSION contains nul"));
 
-/// Выполняет FFI-функцию, превращая панику в код ошибки.
+/// Runs an FFI function, converting a panic into an error code.
 fn guard(err_code: i32, f: impl FnOnce() -> Result<(), String>) -> i32 {
     match catch_unwind(AssertUnwindSafe(f)) {
         Ok(Ok(())) => NVM_FFI_OK,
@@ -76,26 +76,26 @@ fn set_last_error(message: String) {
     LAST_ERROR.with(|e| *e.borrow_mut() = Some(message));
 }
 
-/// Читает NUL-терминированную C-строку как текст исходника.
+/// Reads a NUL-terminated C string as the source text.
 fn read_source(source: *const c_char) -> Result<String, String> {
     if source.is_null() {
         return Err("source is null".to_string());
     }
 
-    // NUL внутри исходника обрезает строку — наша семантика NUL-строк.
+    // A NUL inside the source truncates the string — our NUL-string semantics.
     Ok(String::from_utf8_lossy(unsafe { CStr::from_ptr(source) }.to_bytes()).into_owned())
 }
 
-/// Компилирует исходник и возвращает байты `.nb`.
+/// Compiles the source and returns the `.nb` bytes.
 fn compile_to_bytes(source: *const c_char) -> Result<Vec<u8>, String> {
     let source = read_source(source)?;
     NVMAssembler::assemble_to_bytecode(&source).map_err(|e| e.format())
 }
 
-/// Копирует бинарные данные в буфер потребителя.
+/// Copies binary data into the consumer's buffer.
 ///
-/// В `written` записывается требуемый размер. Если буфер мал —
-/// ошибка, но `written` всё равно сообщает требуемый размер.
+/// The required size is written into `written`. If the buffer is too small —
+/// an error, but `written` still reports the required size.
 fn copy_bytes_to_buffer(
     bytes: &[u8],
     buf: *mut u8,
@@ -124,9 +124,9 @@ fn copy_bytes_to_buffer(
     Ok(())
 }
 
-/// Копирует строку (включая завершающий NUL) в буфер потребителя.
+/// Copies a string (including the terminating NUL) into the consumer's buffer.
 ///
-/// В `written` записывается требуемый размер (включая NUL).
+/// The required size (including the NUL) is written into `written`.
 fn copy_str_to_buffer(
     s: &str,
     buf: *mut u8,
@@ -137,7 +137,7 @@ fn copy_str_to_buffer(
         return Err("written is null".to_string());
     }
 
-    // NUL-терминатор обязателен, поэтому на единицу больше длины строки.
+    // The NUL terminator is mandatory, so one more than the string length.
     let needed = s.len() + 1;
     unsafe { *written = needed };
 
@@ -155,7 +155,7 @@ fn copy_str_to_buffer(
     Ok(())
 }
 
-/// Собирает текст ошибки исполнения.
+/// Assembles the text of an execution error.
 fn format_nvm_error(e: &NVMError) -> String {
     match &e.instruction {
         Some(instruction) => format!("{}. --> {instruction}", e.kind),
@@ -163,16 +163,16 @@ fn format_nvm_error(e: &NVMError) -> String {
     }
 }
 
-/// Исполняет байты `.nb` с заданным размером памяти.
+/// Executes the `.nb` bytes with the given memory size.
 fn run_bytecode(bytes: &[u8], memory_size: usize) -> Result<(), String> {
     NVMl::with_memory_size(memory_size)
         .run(BytecodeSource::Bytes(bytes.to_vec()))
         .map_err(|e| format_nvm_error(&e))
 }
 
-/// Версия NVM в виде C-строки (не требует освобождения).
+/// The NVM version as a C string (does not need to be freed).
 ///
-/// ## Пример
+/// ## Example
 /// ```c
 /// printf("NVM %s\n", nvm_version());
 /// ```
@@ -181,10 +181,10 @@ pub extern "C" fn nvm_version() -> *const c_char {
     VERSION_C.as_ptr()
 }
 
-/// Компилирует исходник NVM Assembly и сохраняет байты `.nb`
-/// в thread-local буфере (заменяя предыдущий результат).
+/// Compiles an NVM Assembly source and saves the `.nb` bytes
+/// in a thread-local buffer (replacing the previous result).
 ///
-/// Размер результата — [`nvm_compile_size`], чтение — [`nvm_compile_write`].
+/// The result size is in [`nvm_compile_size`], reading in [`nvm_compile_write`].
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_compile(source: *const c_char) -> i32 {
     guard(NVM_FFI_ERR_COMPILE, || {
@@ -194,8 +194,8 @@ pub extern "C" fn nvm_compile(source: *const c_char) -> i32 {
     })
 }
 
-/// Записывает в `size` размер результата компиляции (без повторного
-/// выделения). Сам результат не сохраняется.
+/// Writes the size of the compilation result into `size` (without
+/// re-allocating). The result itself is not stored.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_compile_size(source: *const c_char, size: *mut usize) -> i32 {
@@ -210,9 +210,9 @@ pub extern "C" fn nvm_compile_size(source: *const c_char, size: *mut usize) -> i
     })
 }
 
-/// Компилирует исходник и записывает байты `.nb` в `buf`.
+/// Compiles the source and writes the `.nb` bytes into `buf`.
 ///
-/// В `written` — требуемый размер. Если буфер мал — `NVM_FFI_ERR_CONTRACT`.
+/// `written` receives the required size. If the buffer is too small — `NVM_FFI_ERR_CONTRACT`.
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_compile_write(
     source: *const c_char,
@@ -226,7 +226,7 @@ pub extern "C" fn nvm_compile_write(
     })
 }
 
-/// Исполняет байты `.nb` с памятью по умолчанию.
+/// Executes the `.nb` bytes with the default memory.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_run_bytecode(bytes: *const u8, len: usize) -> i32 {
@@ -234,7 +234,7 @@ pub extern "C" fn nvm_run_bytecode(bytes: *const u8, len: usize) -> i32 {
         if len > 0 && bytes.is_null() {
             return Err("bytes is NULL".to_string());
         }
-        // Само `run_bytecode` при len == 0 вернёт ошибку загрузчика.
+        // `run_bytecode` itself will return a loader error when len == 0.
         run_bytecode(
             unsafe { std::slice::from_raw_parts(bytes, len) },
             DEFAULT_MEMORY_SIZE,
@@ -242,7 +242,7 @@ pub extern "C" fn nvm_run_bytecode(bytes: *const u8, len: usize) -> i32 {
     })
 }
 
-/// Исполняет байты `.nb` с указанным размером памяти.
+/// Executes the `.nb` bytes with the specified memory size.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_run_bytecode_mem(bytes: *const u8, len: usize, memory_size: usize) -> i32 {
@@ -257,10 +257,10 @@ pub extern "C" fn nvm_run_bytecode_mem(bytes: *const u8, len: usize, memory_size
     })
 }
 
-/// Компилирует исходник и сразу исполняет его.
+/// Compiles the source and immediately executes it.
 ///
-/// Ошибки компиляции возвращают `NVM_FFI_ERR_COMPILE`,
-/// ошибки исполнения — `NVM_FFI_ERR_RUN`.
+/// Compilation errors return `NVM_FFI_ERR_COMPILE`,
+/// execution errors — `NVM_FFI_ERR_RUN`.
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_run_source(source: *const c_char) -> i32 {
     let compiled = catch_unwind(AssertUnwindSafe(|| {
@@ -286,10 +286,10 @@ pub extern "C" fn nvm_run_source(source: *const c_char) -> i32 {
     })
 }
 
-/// Записывает текст последней ошибки текущего потока в `buf`.
+/// Writes the text of the last error of the current thread into `buf`.
 ///
-/// В `written` — требуемый размер (включая NUL). Ошибка не очищается:
-/// повторный вызов вернёт тот же текст, пока не произойдёт новая ошибка.
+/// The required size (including the NUL) is written into `written`. The error is not cleared:
+/// a repeated call returns the same text until a new error occurs.
 #[unsafe(no_mangle)]
 pub extern "C" fn nvm_last_error(buf: *mut c_char, cap: usize, written: *mut usize) -> i32 {
     guard(NVM_FFI_ERR_CONTRACT, || {

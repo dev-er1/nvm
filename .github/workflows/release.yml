@@ -23,7 +23,7 @@ jobs:
             archive_name: nvm-linux-x64.tar.gz
             package_format: tar.gz
           
-          # `x86-unknown-linux-gnu` больше не поддерживается в Rust.
+          # ``x86-unknown-linux-gnu` is no longer supported in Rust.
 
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu

@@ -1,13 +1,11 @@
-// nvm-core/benches/vm/binary_trees.rs
-//
-// Двоичные деревья: подсчёт числа узлов полного дерева глубины 15.
+// Binary trees: counting the number of nodes of a full tree of depth 15.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// `make_tree(depth in r0) -> r0` — число узлов полного дерева этой глубины.
+/// `make_tree(depth in r0) -> r0` — the node count of a full tree of that depth.
 fn program(depth: u64) -> Vec<Instruction> {
     let mut asm = Asm::new();
     asm.jump("main");

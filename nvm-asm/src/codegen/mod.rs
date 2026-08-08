@@ -1,26 +1,26 @@
-//! # Кодогенерация
+//! # Code generation
 //!
-//! Кодогенератор превращает [`AST`] в программу из инструкций
-//! ([`Vec<Instruction>`]) — следующий этап после [`parser`](crate::parser).
+//! The code generator turns an [`AST`] into a program of instructions
+//! ([`Vec<Instruction>`]) — the next stage after [`parser`](crate::parser).
 //!
-//! ## Метки
+//! ## Labels
 //!
-//! Метки — абстракция ассемблера: в байт-коде их не существует.
-//! Кодогенератор разрешает ссылки на метки в **индексы инструкций**:
-//! метка указывает на инструкцию, следующую за её объявлением,
-//! переход на метку — это переход на эту инструкцию.
+//! Labels are an assembler abstraction: they do not exist in bytecode.
+//! The code generator resolves label references into **instruction indices**:
+//! a label points to the instruction following its declaration,
+//! and a jump to a label is a jump to that instruction.
 //!
-//! Разрешение происходит в два прохода:
-//! 1. собираются метки и эмитятся инструкции, ссылки на метки временно
-//!    заменяются нулевым immediate и запоминаются как "фиксапы";
-//! 2. фиксапы заменяются реальными индексами инструкций.
+//! Resolution happens in two passes:
+//! 1. labels are collected and instructions are emitted; label references are temporarily
+//!    replaced with a zero immediate and remembered as "fixups";
+//! 2. fixups are replaced with real instruction indices.
 //!
-//! При первой же ошибке (дубликат или неопределённая метка)
-//! генерация останавливается — кодогенератор работает по принципу
-//! *fail-fast*.
+//! At the very first error (a duplicate or undefined label)
+//! generation stops — the code generator works on the
+//! *fail-fast* principle.
 //!
-//! Кодирование программы в байтовый формат NVM Bytecode (`.nb`)
-//! — в подмодуле [`encoder`].
+//! Encoding a program into the NVM Bytecode binary format (`.nb`)
+//! — in the [`encoder`] submodule.
 pub mod encoder;
 pub mod err;
 
@@ -39,17 +39,17 @@ use crate::{
 
 use self::err::{CodegenError, CodegenErrorKind};
 
-/// Генерирует программу из [`AST`].
+/// Generates a program from an [`AST`].
 ///
-/// Метки разрешаются в индексы инструкций (см. документацию модуля).
-/// При дубликате метки или ссылке на несуществующую метку возвращается
-/// первая же ошибка.
+/// Labels are resolved into instruction indices (see the module documentation).
+/// On a duplicate label or a reference to a nonexistent label, the
+/// very first error is returned.
 pub fn generate(ast: &AST, str_pool: &StrPool) -> Result<Vec<Instruction>, CodegenError> {
     let mut labels: HashMap<StrId, usize> = HashMap::new();
     let mut instructions = Vec::new();
     let mut fixups = Vec::new();
 
-    // ====== Проход 1: метки и инструкции ======
+    // ====== Pass 1: labels and instructions ======
 
     for statement in &ast.program {
         match statement {
@@ -89,7 +89,7 @@ pub fn generate(ast: &AST, str_pool: &StrPool) -> Result<Vec<Instruction>, Codeg
         }
     }
 
-    // ====== Проход 2: разрешение ссылок на метки ======
+    // ====== Pass 2: resolving label references ======
 
     for fixup in fixups {
         let Some(&target) = labels.get(&fixup.label) else {
@@ -116,25 +116,25 @@ pub fn generate(ast: &AST, str_pool: &StrPool) -> Result<Vec<Instruction>, Codeg
     Ok(instructions)
 }
 
-/// Ссылка на метку, ожидающая разрешения во втором проходе.
+/// A label reference awaiting resolution in the second pass.
 struct Fixup {
-    /// Индекс инструкции с этой ссылкой.
+    /// Index of the instruction with this reference.
     instr_index: usize,
 
-    /// Слот операнда (0, 1 или 2), в котором стоит ссылка.
+    /// The operand slot (0, 1, or 2) that holds the reference.
     slot: usize,
 
-    /// Имя метки.
+    /// The label name.
     label: StrId,
 
-    /// Позиция инструкции (для ошибки "undefined label").
+    /// Position of the instruction (for the "undefined label" error).
     position: Position,
 }
 
-/// Превращает операнд AST в операнд инструкции.
+/// Converts an AST operand into an instruction operand.
 ///
-/// Ссылка на метку заменяется нулевым immediate, а сам факт ссылки
-/// записывается в `fixups`.
+/// A label reference is replaced with a zero immediate, and the reference
+/// itself is recorded in `fixups`.
 fn flatten(
     operand: Option<Operand>,
     instr_index: usize,

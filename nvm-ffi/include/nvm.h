@@ -1,14 +1,14 @@
 /**
   * @file nvm.h
-  * @brief C ABI для NVM. Работает и в C, и в C++ (extern "C").
+  * @brief C ABI for NVM. Works in both C and C++ (extern "C").
   *
-  * Конвенции:
-  *   - 0 (NVM_FFI_OK) — успех, любое другое значение — код ошибки;
-  *   - текст последней ошибки потока — через nvm_last_error();
-  *   - результаты пишутся в буфер потребителя (паттерн "два вызова":
-  *     сначала узнать размер через *_size/written, потом записать);
-  *   - при ошибке "буфер мал" в written всё равно записывается
-  *     требуемый размер.
+  * Conventions:
+  *   - 0 (NVM_FFI_OK) — success, any other value — an error code;
+  *   - the text of the last thread error is read via nvm_last_error();
+  *   - results are written into a consumer-provided buffer (the "two calls"
+  *     pattern: first get the size via *_size/written, then write);
+  *   - on the "buffer too small" error, the required size is still
+  *     written into written.
  */
 #ifndef NVM_NVM_H
 #define NVM_NVM_H
@@ -26,28 +26,28 @@ extern "C" {
 #define NVM_FFI_ERR_CONTRACT 3
 #define NVM_FFI_ERR_PANIC 4
 
-/* Версия NVM в виде C-строки (не требует освобождения). */
+/// @brief The NVM version as a C string (does not need to be freed).
 const char* nvm_version(void);
 
-/* Компилирует NVM Assembly и сохраняет .nb-байты в thread-local буфере. */
+/// @brief Compiles NVM Assembly and saves the .nb bytes in a thread-local buffer.
 int nvm_compile(const char* source);
 
-/* Записывает в size размер результата компиляции. */
+/// @brief Writes the size of the compilation result into size.
 int nvm_compile_size(const char* source, size_t* size);
 
-/* Компилирует и записывает .nb-байты в buf (ёмкость cap). */
+/// @brief Compiles and writes the `.nb` bytes into buf (capacity cap).
 int nvm_compile_write(const char* source, uint8_t* buf, size_t cap, size_t* written);
 
-/* Исполняет .nb-байты с памятью по умолчанию. */
+/// @brief Executes the .nb bytes with the default memory.
 int nvm_run_bytecode(const uint8_t* bytes, size_t len);
 
-/* Исполняет .nb-байты с указанным размером памяти. */
+/// @brief Executes the .nb bytes with the specified memory size.
 int nvm_run_bytecode_mem(const uint8_t* bytes, size_t len, size_t memory_size);
 
-/* Компилирует исходник и сразу исполняет его. */
+/// @brief Compiles the source and immediately executes it.
 int nvm_run_source(const char* source);
 
-/* Текст последней ошибки текущего потока (включая NUL). */
+/// @brief The text of the last error of the current thread (including the NUL).
 int nvm_last_error(char* buf, size_t cap, size_t* written);
 
 #ifdef __cplusplus

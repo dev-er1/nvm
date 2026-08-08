@@ -1,4 +1,4 @@
-// Тест на целочисленную арифметику.
+// Test for integer arithmetic.
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode::*, register::Register};
 
 use crate::vm_tests::helpers::*;

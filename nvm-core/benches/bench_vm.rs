@@ -1,11 +1,9 @@
-// nvm-core/benches/bench_vm.rs
+// The entry point of the VM benchmarks: each benchmark is a separate file in
+// the `benches/vm/` directory.
 //
-// Точка входа бенчмарков ВМ: каждый бенчмарк — отдельный файл в
-// каталоге `benches/vm/`.
-//
-// Все бенчмарки замеряют полный цикл: байты `.nb`-формата формируются
-// in-memory как `Vec<u8>`, после чего замеряется загрузка
-// (транспиляция байтов в инструкции) + исполнение программы.
+// All benchmarks measure the full pipeline: the `.nb` format bytes are built
+// in-memory as a `Vec<u8>`, after which the loading
+// (transpilation of bytes into instructions) + program execution is measured.
 mod vm;
 
 use criterion::{Criterion, criterion_group, criterion_main};

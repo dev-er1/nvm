@@ -1,6 +1,6 @@
 // nvm-cli/src/parser.rs
 //
-//! Превращение строки в [`Command`].
+//! Conversion of a command line string into a [`Command`].
 use argparser::{ArgumentParser, ParseError};
 
 use crate::{
@@ -43,8 +43,8 @@ fn parse_help(args: &[String]) -> Result<Command, CLIError> {
         return Err(CLIError::new(
             error_kind(err),
             Some(args.to_vec()),
-            // Для ошибочного флага/значения ищем индекс аргумента.
-            // Если найти не удалось — пропускаем указатель (`None`).
+            // For an erroneous flag/value, look up the argument index.
+            // If not found — omit the pointer (`None`).
             find_arg_index(args, offending_token(err)).map(|index| vec![index]),
         ));
     }
@@ -68,8 +68,8 @@ fn parse_run(args: &[String]) -> Result<Command, CLIError> {
         ));
     }
 
-    // `positional()[0]` — всегда имя команды ("run"), т.к. парсим полные
-    // аргументы. Файл, таким образом, находится по индексу `1`.
+    // `positional()[0]` is always the command name ("run"), since we parse
+    // the full arguments. The file, therefore, is at index `1`.
     let file = matches.get(1).ok_or_else(|| {
         CLIError::new(
             CLIErrorKind::MissingValueForCommand("run".to_string()),
@@ -107,8 +107,8 @@ fn parse_compile(args: &[String]) -> Result<Command, CLIError> {
         ));
     }
 
-    // `positional()[0]` — всегда имя команды ("compile"), т.к. парсим полные
-    // аргументы. Файл, таким образом, находится по индексу `1`.
+    // `positional()[0]` is always the command name ("compile"), since we parse
+    // the full arguments. The file, therefore, is at index `1`.
     let file = matches.get(1).ok_or_else(|| {
         CLIError::new(
             CLIErrorKind::MissingValueForCommand("compile".to_string()),
@@ -143,10 +143,10 @@ fn error_kind(err: &ParseError) -> CLIErrorKind {
     }
 }
 
-/// Возвращает "токен", на который нужно указать в исходной командной строке.
+/// Returns the "token" to point at in the original command line.
 ///
-/// `argparser` в ошибках `MissingValue`/`UnexpectedValue` отдаёт имя флага
-/// без ведущих дефисов, поэтому собираем токен во всех возможных формах.
+/// In `MissingValue`/`UnexpectedValue` errors `argparser` reports the flag
+/// name without leading dashes, so we assemble the token in all possible forms.
 fn offending_token(err: &ParseError) -> &str {
     match err {
         ParseError::UnknownFlag(flag) => flag,
@@ -156,13 +156,13 @@ fn offending_token(err: &ParseError) -> &str {
     }
 }
 
-/// Ищет индекс аргумента, соответствующего флагу или значению из ошибки.
+/// Searches for the index of the argument matching the flag or value from the error.
 ///
-/// Сравнение идёт по "нормализованному" имени: без ведущих дефисов
-/// и без части `=...` (для флагов в форме `--flag=value`).
+/// The comparison uses a "normalized" name: without leading dashes
+/// and without the `=...` part (for flags of the form `--flag=value`).
 ///
-/// Например, для флага `info` подойдут аргументы `info`, `--info`,
-/// `-info` и `--info=value`.
+/// For example, for the flag `info` the arguments `info`, `--info`,
+/// `-info` and `--info=value` all match.
 fn find_arg_index(args: &[String], needle: &str) -> Option<usize> {
     let needle = normalize(needle);
 

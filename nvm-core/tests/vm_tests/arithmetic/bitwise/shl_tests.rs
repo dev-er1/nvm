@@ -1,4 +1,4 @@
-// Тесты на `SHL`.
+// Tests for `SHL`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::bitwise::get_result;

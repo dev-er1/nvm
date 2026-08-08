@@ -1,7 +1,7 @@
 // nvm-asm/tests/lexer_tests/token_tests.rs
 //
-// Тесты на распознавание токенов: мнемоники, регистры,
-// идентификаторы и пунктуация.
+// Tests for token recognition: mnemonics, registers,
+// identifiers, and punctuation.
 use nvm_asm::lexer::err::LexerErrorKind;
 use nvm_core::isa::opcode::OperationCode;
 
@@ -84,8 +84,8 @@ fn unknown_words_become_identifiers() {
 
 #[test]
 fn words_starting_with_r_are_not_always_registers() {
-    // "result" начинается с буквы r, но не с цифры, а одиночный "r"
-    // вообще не имеет номера — оба являются идентификаторами.
+// "result" starts with the letter r but not a digit, and a lone "r"
+// has no number at all — both are identifiers.
     for text in ["result", "r"] {
         let (tokens, errors) = tokenize(text);
 
@@ -96,7 +96,7 @@ fn words_starting_with_r_are_not_always_registers() {
 
 #[test]
 fn r0x_is_an_identifier() {
-    // "r0x" выглядит как регистр только по первому символу.
+    // "r0x" looks like a register only by its first character.
     let (tokens, errors) = tokenize("r0x");
 
     assert!(errors.is_empty());
@@ -180,7 +180,7 @@ fn identifiers_are_interned_in_str_pool() {
         _ => panic!("expected an identifier"),
     };
 
-    // Оба вхождения метки ссылаются на одну строку в пуле.
+    // Both occurrences of the label refer to the same string in the pool.
     assert_eq!(first, second);
     assert_eq!(str_pool.get(first), "start");
 }
@@ -269,7 +269,7 @@ fn unexpected_character_is_reported_and_skipped() {
         errors[0].kind,
         LexerErrorKind::UnexpectedCharacter('!')
     ));
-    // Ошибочный символ пропущен, разбор продолжается: R0 распознаётся.
+    // The erroneous character is skipped and parsing continues: R0 is recognized.
     assert!(matches!(
         tokens[0].kind,
         TokenKind::Mnemonic(OperationCode::MOVE)

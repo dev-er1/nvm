@@ -1,13 +1,11 @@
-// nvm-core/benches/vm/ackermann.rs
-//
-// Функция Аккермана ack(m, n) — глубокая рекурсия с CALL/RET.
+// The Ackermann function ack(m, n) — deep recursion with CALL/RET.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// `ack(m in r0, n in r1) -> r0`; стек значений для вложенных вызовов.
+/// `ack(m in r0, n in r1) -> r0`; the value stack for nested calls.
 fn program(m: u64, n: u64) -> Vec<Instruction> {
     let mut asm = Asm::new();
     asm.jump("main");

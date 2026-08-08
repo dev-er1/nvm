@@ -1,47 +1,46 @@
 // nvm-core/src/vm/executer.rs
 //
-//! # Исполнитель байткода NVM
+//! # NVM bytecode executor
 //!
-//! В этом модуле реализован исполнитель инструкций NVM —
-//! на основе *Direct Threading* (прямой сквозной диспетчеризации).
+//! This module implements the NVM instruction executor —
+//! based on *Direct Threading* (direct threaded dispatch).
 //!
-//! ## Идея
+//! ## The idea
 //!
-//! Программа **один раз** кодируется в плоский массив [`u64`]:
+//! The program is encoded **once** into a flat array of [`u64`]:
 //!
-//! 4 слота по 8 байт на каждую инструкцию.
+//! 4 slots of 8 bytes per instruction.
 //!
-//! Слот `0` — заголовок: **адрес хендлера** этой инструкции, выбранного
-//! по опкоду и видам операндов. "Виды" — по одному биту на операнд
-//! ("операнд — регистр"). Хендлеры специализированы по сигнатуре:
-//! по одному на каждую валидную комбинацию видов операндов
-//! (например, `IADD` — четыре: `(imm, imm)`, `(reg, imm)`,
-//! `(imm, reg)`, `(reg, reg)`). В обработчике не остаётся веток
-//! по виду операнда — она устранена уже при кодировании.
+//! Slot `0` is the header: the **handler address** of this instruction, chosen
+//! by the opcode and the operand kinds. "Kinds" are one bit per operand
+//! ("the operand is a register"). Handlers are specialized by signature:
+//! one for each valid combination of operand kinds
+//! (for example, `IADD` — four: `(imm, imm)`, `(reg, imm)`,
+//! `(imm, reg)`, `(reg, reg)`). The handler has no branches
+//! by operand kind — the branching is eliminated already at encoding time.
 //!
-//! Таблица переходов используется **только на этапе кодирования**:
-//! в поток программы сразу кладутся адреса хендлеров, поэтому
-//! в горячем цикле нет ни индексации таблицы, ни вычисления индекса
-//! диспетчеризации, ни проверки границ таблицы.
+//! The jump table is used **only at the encoding stage**:
+//! the handler addresses are placed directly into the program stream, so
+//! in the hot loop there is no table indexing, no dispatch index
+//! computation, and no table bounds check.
 //!
-//! Каждый операнд "разворачивается" в число:
-//! - регистр — в номер регистра (бит "регистр" в заголовке);
-//! - immediate — как есть (бит сброшен);
-//! - отсутствующий операнд — в `0` (бит сброшен).
+//! Each operand is "flattened" into a number:
+//! - a register — into the register number (the "register" bit in the header);
+//! - an immediate — as is (the bit cleared);
+//! - a missing operand — into `0` (the bit cleared).
 //!
-//! Количество и обязательные типы операндов (приёмники обязаны быть
-//! регистрами) проверяются **один раз** при кодировании, до начала
-//! исполнения.
+//! The operand count and the mandatory operand types (destinations must be
+//! registers) are checked **once** at encoding, before execution starts.
 //!
-//! ## Горячий цикл
+//! ## Hot loop
 //!
-//! В цикле на инструкцию приходится: чтение адреса хендлера из
-//! заголовка без проверки границ (инвариант `ip < len`), косвенный
-//! вызов обработчика и одна проверка следующего `ip` на выход за
-//! конец программы. Операнды читаются обработчиком по сырому указателю
-//! без копий.
+//! In the loop, per instruction: reading the handler address from
+//! the header without a bounds check (the `ip < len` invariant), an indirect
+//! handler call, and one check that the next `ip` does not go past the
+//! end of the program. Operands are read by the handler via a raw pointer
+//! without copies.
 //!
-//! Точка входа — [`NVM::run`].
+//! The entry point is [`NVM::run`].
 use crate::{
     isa::{
         instruction::Instruction,
@@ -55,59 +54,59 @@ use crate::{
     },
 };
 
-/// Сколько слотов занимает одна инструкция в закодированной программе.
+/// How many slots one instruction occupies in the encoded program.
 const SLOTS: usize = 4;
 
-/// Количество опкодов NVM.
+/// The number of NVM opcodes.
 const OPCODE_COUNT: usize = OperationCode::RET as usize + 1;
 
-/// Количество записей в таблице переходов: по 8 сигнатур на опкод.
+/// The number of entries in the jump table: 8 signatures per opcode.
 const TABLE_LEN: usize = OPCODE_COUNT * 8;
 
-/// Значение `EXIT` для следующего `ip`: завершает исполнение, так как
-/// `>= instruction_count`.
+/// The `EXIT` value for the next `ip`: ends execution, since
+/// it is `>= instruction_count`.
 const EXIT_MARKER: usize = usize::MAX;
 
-/// Результат обработчика: индекс следующей инструкции.
+/// The handler result: the index of the next instruction.
 type HandlerResult = Result<usize, VMError>;
 
-/// Функция-обработчик одной инструкции.
+/// The handler function of a single instruction.
 ///
-/// Получает ВМ, указатель на слоты операндов текущей инструкции
-/// (слот `0` — операнд 1, слот `1` — операнд 2, слот `2` — операнд 3)
-/// и индекс текущей инструкции. Возвращает индекс следующей инструкции.
+/// Receives the VM, a pointer to the operand slots of the current instruction
+/// (slot `0` is operand 1, slot `1` is operand 2, slot `2` is operand 3),
+/// and the index of the current instruction. Returns the index of the next instruction.
 ///
 /// # Safety
 ///
-/// Указатель указывает на операнды инструкции с индексом `ip`
-/// в закодированной программе (гарантируется инвариантом
-/// `0 <= ip < instruction_count` в [`NVM::run`]);
-/// обработчик читает только слоты `0..SLOTS - 1` относительно него,
-/// т.е. строго в пределах инструкции.
+/// The pointer points to the operands of the instruction with index `ip`
+/// in the encoded program (guaranteed by the invariant
+/// `0 <= ip < instruction_count` in [`NVM::run`]);
+/// the handler reads only slots `0..SLOTS - 1` relative to it,
+/// i.e. strictly within the instruction.
 type Handler = unsafe fn(&mut NVM, *const u64, usize) -> HandlerResult;
 
-/// Читает слот операнда по указателю.
+/// Reads an operand slot via the pointer.
 #[inline(always)]
 fn slot(p: *const u64, n: usize) -> u64 {
-    // SAFETY: см. `Handler` — слоты находятся в пределах инструкции.
+    // SAFETY: see `Handler` — the slots are within the instruction.
     unsafe { *p.add(n) }
 }
 
-/// Читает значение регистрового операнда (в слоте — номер регистра).
+/// Reads the value of a register operand (the slot holds the register number).
 #[inline(always)]
 fn read_reg(vm: &NVM, p: *const u64, n: usize) -> u64 {
     vm.registers[Register(slot(p, n) as u8)]
 }
 
-/// Читает значение immediate-операнда (в слоте — значение).
+/// Reads the value of an immediate operand (the slot holds the value).
 #[inline(always)]
 fn read_imm(p: *const u64, n: usize) -> u64 {
     slot(p, n)
 }
 
-/// Читает значение операнда:
-/// - `reg` — содержимое регистра;
-/// - `imm` — immediate из слота.
+/// Reads the value of an operand:
+/// - `reg` — the register contents;
+/// - `imm` — the immediate from the slot.
 macro_rules! read_operand {
     ($vm:expr, $p:expr, $n:expr, reg) => {
         read_reg($vm, $p, $n)
@@ -117,11 +116,11 @@ macro_rules! read_operand {
     };
 }
 
-// ====== Обработчики ======
+// ====== Handlers ======
 //
-// Обработчики сгруппированы по "формам" инструкций. Для каждой формы
-// генерируются специализированные варианты по сигнатуре операндов:
-// `r` — регистр, `i` — immediate (порядок букв — порядок операндов).
+// Handlers are grouped by instruction "shapes". For each shape,
+// specialized variants are generated per operand signature:
+// `r` — register, `i` — immediate (the letter order is the operand order).
 
 fn nop(_vm: &mut NVM, _p: *const u64, ip: usize) -> HandlerResult {
     Ok(ip + 1)
@@ -139,13 +138,13 @@ fn ret(vm: &mut NVM, _p: *const u64, _ip: usize) -> HandlerResult {
     Ok(ip)
 }
 
-/// Заглушка для невалидных сигнатур (никогда не вызывается:
-/// кодирование не позволяет построить такую сигнатуру).
+/// Stub for invalid signatures (never called:
+/// encoding cannot produce such a signature).
 fn invalid_signature(_vm: &mut NVM, _p: *const u64, _ip: usize) -> HandlerResult {
     unreachable!("jump table: invalid operand signature reached")
 }
 
-/// Генератор варианта `MOVE` (2 операнда: dst — регистр, src — любой).
+/// Generator of a `MOVE` variant (2 operands: dst — register, src — any).
 macro_rules! move_variant {
     ($name:ident, $k:tt) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -158,7 +157,7 @@ macro_rules! move_variant {
 move_variant!(move_ri, imm);
 move_variant!(move_rr, reg);
 
-/// Генератор варианта `LOAD*` (2 операнда: dst — регистр, адрес — любой).
+/// Generator of a `LOAD*` variant (2 operands: dst — register, address — any).
 macro_rules! load_variant {
     ($name:ident, $method:ident, $k:tt) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -184,7 +183,7 @@ load_variant!(load32_rr, load_u32, reg);
 load_variant!(load64_ri, load_u64, imm);
 load_variant!(load64_rr, load_u64, reg);
 
-/// Генератор варианта `STORE*` (2 операнда: адрес и значение — любые).
+/// Generator of a `STORE*` variant (2 operands: address and value — any).
 macro_rules! store_variant {
     ($name:ident, $method:ident, $cast:ty, $ka:tt, $kv:tt) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -218,9 +217,9 @@ store_variant!(store64_ri, store_u64, u64, reg, imm);
 store_variant!(store64_ir, store_u64, u64, imm, reg);
 store_variant!(store64_rr, store_u64, u64, reg, reg);
 
-/// Генератор варианта бинарной операции (3 операнда: dst — регистр,
-/// src1 и src2 — любые). `$op` — замыкание `|lhs, rhs| ...` над `u64`
-/// (преобразование битов в `f64` и обратно — внутри замыкания).
+/// Generator of a binary operation variant (3 operands: dst — register,
+/// `src1` and `src2` — any). `$op` — a closure `|lhs, rhs| ...` over `u64`
+/// (bit conversion to `f64` and back — inside the closure).
 macro_rules! binary_variant {
     ($name:ident, $k1:tt, $k2:tt, $op:expr) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -262,8 +261,8 @@ binops!(
     imul_rr: reg reg,
 );
 
-/// Генератор варианта деления/остатка — как `binary_variant`, но
-/// с проверкой делителя на ноль.
+/// Generator of a division/remainder variant — like `binary_variant`, but
+/// with a divisor zero check.
 macro_rules! division_variant {
     ($name:ident, $k1:tt, $k2:tt, $op:expr) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -314,8 +313,8 @@ divisions!(
     urem_rr: reg reg,
 );
 
-/// Генератор варианта унарной операции (2 операнда: dst — регистр,
-/// src — любой).
+/// Generator of a unary operation variant (2 operands: dst — register,
+/// src — any).
 macro_rules! unary_variant {
     ($name:ident, $k:tt, $op:expr) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -566,7 +565,7 @@ binops!(
     fge_rr: reg reg,
 );
 
-/// Генератор варианта безусловного перехода (1 операнд — цель).
+/// Generator of an unconditional jump variant (1 operand — the target).
 macro_rules! jmp_variant {
     ($name:ident, $k:tt) => {
         fn $name(_vm: &mut NVM, p: *const u64, _ip: usize) -> HandlerResult {
@@ -579,12 +578,12 @@ macro_rules! jmp_variant {
 jmp_variant!(jmp_i, imm);
 jmp_variant!(jmp_r, reg);
 
-/// Генератор варианта `CALL` (1 операнд — цель).
+/// Generator of a `CALL` variant (1 operand — the target).
 macro_rules! call_variant {
     ($name:ident, $k:tt) => {
         fn $name(vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
             let target = read_operand!(vm, p, 0, $k) as usize;
-            // Адрес возврата — инструкция, следующая за `CALL`.
+            // The return address is the instruction following `CALL`.
             vm.call_stack.push(ip + 1);
             Ok(target)
         }
@@ -594,8 +593,8 @@ macro_rules! call_variant {
 call_variant!(call_i, imm);
 call_variant!(call_r, reg);
 
-/// Генератор варианта условного перехода (2 операнда:
-/// условие и цель — любые). `$taken` — замыкание `|cond| bool`.
+/// Generator of a conditional jump variant (2 operands:
+/// the condition and the target — any). `$taken` — a closure `|cond| bool`.
 macro_rules! cond_variant {
     ($name:ident, $k1:tt, $k2:tt, $taken:expr) => {
         fn $name(_vm: &mut NVM, p: *const u64, ip: usize) -> HandlerResult {
@@ -615,7 +614,7 @@ cond_variant!(jnz_ri, reg, imm, |cond: u64| cond != 0);
 cond_variant!(jnz_ir, imm, reg, |cond: u64| cond != 0);
 cond_variant!(jnz_rr, reg, reg, |cond: u64| cond != 0);
 
-// ====== Таблица переходов ======
+// ====== Jump table ======
 
 macro_rules! register {
     ($table:ident, $opcode:expr, $kinds:expr, $handler:ident) => {
@@ -657,14 +656,14 @@ macro_rules! register_cond {
     };
 }
 
-/// Строит таблицу переходов: `индекс = опкод * 8 + виды операндов`.
+/// Builds the jump table: `index = opcode * 8 + operand kinds`.
 ///
-/// Виды операндов — по одному биту на операнд (`1` — регистр):
-/// бит `0` — операнд 1, бит `1` — операнд 2, бит `2` — операнд 3.
+/// Operand kinds are one bit per operand (`1` — register):
+/// bit `0` — operand 1, bit `1` — operand 2, bit `2` — operand 3.
 ///
-/// Для каждого опкода регистрируются только валидные сигнатуры
-/// (приёмники всегда регистры), остальные слоты — заглушка
-/// [`invalid_signature`].
+/// For each opcode, only valid signatures are registered
+/// (destinations are always registers); the remaining slots are the
+/// [`invalid_signature`] stub.
 const fn build_jump_table() -> [Handler; TABLE_LEN] {
     let mut table = [invalid_signature as Handler; TABLE_LEN];
 
@@ -856,19 +855,19 @@ const fn build_jump_table() -> [Handler; TABLE_LEN] {
     table
 }
 
-/// Таблица переходов: `индекс = опкод * 8 + виды операндов`.
+/// The jump table: `index = opcode * 8 + operand kinds`.
 ///
-/// Используется **только на этапе кодирования** ([`encode`]), чтобы
-/// положить в поток программы адрес нужного хендлера. В горячем цикле
-/// обращения к таблице нет.
+/// Used **only at the encoding stage** ([`encode`]) to put the address
+/// of the required handler into the program stream. The hot loop does not
+/// touch the table.
 static JUMP_TABLE: [Handler; TABLE_LEN] = build_jump_table();
 
-// ====== Исполнитель ======
+// ====== Executor ======
 
 impl NVM {
-    /// Выполняет программу ВМ (Direct Threading).
+    /// Runs the VM program (Direct Threading).
     pub fn run(&mut self) -> Result<(), VMError> {
-        // Кодируем программу один раз.
+        // Encode the program once.
         let code = encode(&self.program)?;
         let instruction_count = self.program.len();
 
@@ -878,21 +877,21 @@ impl NVM {
 
         let mut ip = 0usize;
 
-        // Инвариант цикла: `0 <= ip < instruction_count`, поэтому чтение
-        // заголовка инструкции и слотов операндов (через обработчик)
-        // не выходит за границы `code`.
+        // Loop invariant: `0 <= ip < instruction_count`, so reading
+        // the instruction header and the operand slots (through the handler)
+        // never goes out of bounds of `code`.
         loop {
-            // SAFETY: `ip < instruction_count`, см. инвариант выше.
+            // SAFETY: `ip < instruction_count`, see the invariant above.
             let base = unsafe { code.as_ptr().add(ip * SLOTS) };
-            // SAFETY: заголовок — первый слот инструкции (в границах);
-            // хранит адрес хендлера, см. [`encode`].
+            // SAFETY: the header is the instruction's first slot (within bounds);
+            // it stores the handler address, see [`encode`].
             let handler: Handler = unsafe { std::mem::transmute(*base) };
-            // SAFETY: обработчик читает только слоты операндов
-            // текущей инструкции, см. [`Handler`].
+            // SAFETY: the handler reads only the operand slots
+            // of the current instruction, see [`Handler`].
             let next = unsafe { handler(self, base.add(1), ip) }?;
 
-            // `EXIT` возвращает [`EXIT_MARKER`]; переход за конец программы
-            // тоже завершает исполнение (как в `default`-исполнителе).
+            // `EXIT` returns [`EXIT_MARKER`]; jumping past the end of the program
+            // also ends execution (as in the `default` executor).
             if next >= instruction_count {
                 return Ok(());
             }
@@ -901,12 +900,12 @@ impl NVM {
     }
 }
 
-// ====== Кодирование программы ======
+// ====== Program encoding ======
 
-/// Ожидаемое количество операндов и слоты, которые обязаны быть регистрами.
+/// The expected operand count and the slots that must be registers.
 ///
-/// Слоты нумеруются с `1` (слот `0` — заголовок). Слоты, не входящие
-/// в `register_slots`, могут быть как регистром, так и immediate.
+/// Slots are numbered from `1` (slot `0` is the header). Slots not in
+/// `register_slots` can be either a register or an immediate.
 fn operand_pattern(opcode: OperationCode) -> (u8, &'static [usize]) {
     use OperationCode::*;
 
@@ -925,7 +924,7 @@ fn operand_pattern(opcode: OperationCode) -> (u8, &'static [usize]) {
     }
 }
 
-/// Является ли операнд регистром.
+/// Whether the operand is a register.
 fn is_register(operand: &Option<Operand>) -> bool {
     matches!(
         operand,
@@ -936,15 +935,15 @@ fn is_register(operand: &Option<Operand>) -> bool {
     )
 }
 
-/// Кодирует программу в плоский массив `u64`.
+/// Encodes a program into a flat array of `u64`.
 ///
-/// Каждая инструкция занимает [`SLOTS`] слотов:
-/// `[заголовок, операнд1, операнд2, операнд3]`. В заголовке — адрес
-/// хендлера этой инструкции (выбирается по опкоду и видам операндов,
-/// см. [`build_jump_table`]).
+/// Each instruction occupies [`SLOTS`] slots:
+/// `[header, operand1, operand2, operand3]`. The header holds the address
+/// of the handler for this instruction (chosen by the opcode and operand kinds,
+/// see [`build_jump_table`]).
 ///
-/// При кодировании проверяются количество и обязательные типы операндов
-/// (см. [`operand_pattern`]).
+/// On encoding, the operand count and the required operand types
+/// are checked (see [`operand_pattern`]).
 fn encode(program: &[Instruction]) -> Result<Vec<u64>, VMError> {
     let mut code = Vec::with_capacity(program.len() * SLOTS);
 
@@ -973,12 +972,12 @@ fn encode(program: &[Instruction]) -> Result<Vec<u64>, VMError> {
             | (is_register(&instr.operand2) as u64) << 1
             | (is_register(&instr.operand3) as u64) << 2;
 
-        // Диспетчеризация: в заголовок кладём сам адрес хендлера
-        // сигнатуры. Таблица переходов участвует только на этапе
-        // кодирования — в горячем цикле её нет.
+        // Dispatch: the handler address itself is placed into the header.
+        // The jump table is used only at the encoding stage —
+        // in the hot loop it is absent.
         let handler = JUMP_TABLE[instr.opcode as usize * 8 + kinds as usize];
-        // SAFETY: `Handler` — function pointer, на целевых платформах
-        // NVM (64-битных) он представим как `u64`.
+        // SAFETY: `Handler` is a function pointer; on the target platforms
+        // of NVM (64-bit) it is representable as `u64`.
         code.push(handler as *const () as u64);
         code.push(flatten(instr.operand1));
         code.push(flatten(instr.operand2));
@@ -988,7 +987,7 @@ fn encode(program: &[Instruction]) -> Result<Vec<u64>, VMError> {
     Ok(code)
 }
 
-/// "Разворачивает" операнд в число.
+/// "Flattens" an operand into a number.
 fn flatten(operand: Option<Operand>) -> u64 {
     match operand {
         Some(Operand {

@@ -1,12 +1,12 @@
 //! # `libnvm`
 //!
-//! `libnvm` — крейт для использования NVM.
+//! `libnvm` is the crate for using NVM.
 //!
-//! Две части:
-//! - [`NVMl`] — исполнение байт-кода. Принимает байт-код через
-//!   [`BytecodeSource`] и исполняет его;
-//! - [`NVMAssembler`] — компиляция NVM Assembly в инструкции
-//!   и в байт-код (`.nb`).
+//! Two parts:
+//! - [`NVMl`] — bytecode execution. It takes bytecode via
+//!   [`BytecodeSource`] and executes it;
+//! - [`NVMAssembler`] — compilation of NVM Assembly into instructions
+//!   and into bytecode (`.nb`).
 use std::path::PathBuf;
 
 use nvm_asm::{codegen, lexer::Lexer, parser::Parser, src::SourceCode, str_pool::StrPool};
@@ -15,31 +15,31 @@ use nvm_core::{
     vm::{NVM, memory::NVMMemory},
 };
 
-// Публичный API `libnvm`: тип ошибки и инструкции — переэкспортируем из `nvm-core`.
+// The public API of `libnvm`: the error type and instructions — re-exported from `nvm-core`.
 pub use nvm_core::NVM_VERSION;
 pub use nvm_core::error::{NVMError, NVMErrorKind};
 pub use nvm_core::isa::instruction::Instruction;
 
-// Ошибки компиляции — переэкспортируем из `nvm-asm`.
+// Compilation errors — re-exported from `nvm-asm`.
 pub use nvm_asm::error::{NvmASMError, NvmASMErrorKind};
 
-/// Размер памяти ВМ по умолчанию (в байтах).
+/// The default VM memory size (in bytes).
 pub const DEFAULT_MEMORY_SIZE: usize = 64 * 1024;
 
-/// Источник байт-кода для [`NVMl::run`].
+/// The bytecode source for [`NVMl::run`].
 pub enum BytecodeSource {
-    /// Путь к файлу в формате NVM Bytecode (`.nb`).
+    /// A path to a file in the NVM Bytecode (`.nb`) format.
     File(PathBuf),
 
-    /// Сырые байты байт-кода (например, прочитанные из stdin).
+    /// Raw bytecode bytes (for example, read from stdin).
     Bytes(Vec<u8>),
 
-    /// Уже распарсенные инструкции.
+    /// Already parsed instructions.
     Instructions(Vec<Instruction>),
 }
 
 pub struct NVMl {
-    /// Размер памяти ВМ в байтах.
+    /// VM memory size in bytes.
     pub memory_size: usize,
 }
 
@@ -50,12 +50,12 @@ impl NVMl {
         }
     }
 
-    /// Задаёт размер памяти ВМ в байтах.
+    /// Sets the VM memory size in bytes.
     pub fn with_memory_size(memory_size: usize) -> Self {
         Self { memory_size }
     }
 
-    /// Исполняет байт-код из переданного [`BytecodeSource`].
+    /// Executes the bytecode from the given [`BytecodeSource`].
     pub fn run(&self, source: BytecodeSource) -> Result<(), NVMError> {
         let instructions = match source {
             BytecodeSource::File(path) => {
@@ -86,24 +86,24 @@ impl Default for NVMl {
     }
 }
 
-/// Компилятор NVM Assembly в NVM Bytecode.
+/// Compiler from NVM Assembly into NVM Bytecode.
 ///
-/// Собирает полный конвейер компиляции текстового ассемблера:
+/// Builds the full compilation pipeline of the textual assembler:
 ///
 /// ```text
-/// текст -> лексер -> парсер -> кодогенератор -> (encoder -> .nb)
+/// text -> lexer -> parser -> codegen [-> encoder -> .nb]
 /// ```
 ///
-/// При ошибке возвращается первая же ошибка компиляции
-/// ([`NvmASMError`]) с позицией и фрагментом исходного кода.
+/// On error, the very first compilation error ([`NvmASMError`]) is
+/// returned with a position and a fragment of the source code.
 pub struct NVMAssembler;
 
 impl NVMAssembler {
-    /// Компилирует исходный текст NVM Assembly в инструкции.
+    /// Compiles NVM Assembly source text into instructions.
     ///
-    /// Метки разрешаются в индексы инструкций (см. `codegen`).
+    /// Labels are resolved into instruction indices (see `codegen`).
     ///
-    /// ## Пример
+    /// ## Example
     ///
     /// ```rust
     /// use libnvm::NVMAssembler;
@@ -111,14 +111,14 @@ impl NVMAssembler {
     /// let instructions = NVMAssembler::assemble("MOVE R0, 42\nEXIT").expect("valid program");
     /// assert_eq!(instructions.len(), 2);
     /// ```
-    // Ошибка несёт фрагмент исходного кода для pretty-print
-    // (NvmASMError::format) — это осознанный размер.
+    // An error carries a fragment of the source code for pretty-printing
+    // (NvmASMError::format) — this is a deliberate size.
     #[allow(clippy::result_large_err)]
     pub fn assemble(source: &str) -> Result<Vec<Instruction>, NvmASMError> {
         let source = SourceCode::new(source.to_string());
         let mut str_pool = StrPool::from_source(&source);
 
-        // ====== Лексер ======
+        // ====== Lexer ======
 
         let (tokens, lexer_errors, source) = {
             let mut lexer = Lexer::new(source.clone(), &mut str_pool);
@@ -136,7 +136,7 @@ impl NVMAssembler {
             ));
         }
 
-        // ====== Парсер ======
+        // ====== Parser ======
 
         let mut parser = Parser::new(tokens);
         let ast = parser.parse().clone();
@@ -151,7 +151,7 @@ impl NVMAssembler {
             ));
         }
 
-        // ====== Кодогенератор ======
+        // ====== Code generator ======
 
         codegen::generate(&ast, &str_pool).map_err(|err| {
             NvmASMError::error(
@@ -164,10 +164,10 @@ impl NVMAssembler {
         })
     }
 
-    /// Компилирует исходный текст NVM Assembly в байты `.nb`-файла.
+    /// Compiles NVM Assembly source text into the bytes of a `.nb` file.
     ///
-    /// Отличается от [`Self::assemble`] кодированием инструкций в
-    /// формат NVM Bytecode (см. `docs/File-Format/File-Format.md`).
+    /// Unlike [`Self::assemble`], this encodes the instructions into
+    /// the NVM Bytecode format (see `docs/File-Format/File-Format.md`).
     #[allow(clippy::result_large_err)]
     pub fn assemble_to_bytecode(source: &str) -> Result<Vec<u8>, NvmASMError> {
         let instructions = Self::assemble(source)?;

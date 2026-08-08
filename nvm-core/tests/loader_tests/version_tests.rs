@@ -1,4 +1,4 @@
-// Тесты на парсинг и валидацию версии `.nb`-файлов.
+// Tests on parsing and validation of the version of `.nb`-files.
 use nvm_core::loader::err::LoaderErrorKind;
 
 use super::*;
@@ -74,7 +74,7 @@ fn version_string_format_is_correct() {
 
 #[test]
 fn version_with_large_numbers_in_file_fails() {
-    // "99.99.99" > "0.1.0" как строки -> ошибка версии.
+    // "99.99.99" > "0.1.0" as strings -> version error.
     let err = match run_loader(make_nb_with_version(99, 99, 99, &nop_bytes())) {
         Err(e) => e,
         Ok(_) => panic!("expected loader error"),

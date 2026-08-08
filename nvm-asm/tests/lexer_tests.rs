@@ -1,6 +1,6 @@
 // nvm-asm/tests/lexer_tests.rs
 //
-// Интеграционные тесты лексера.
+// Integration tests for the lexer.
 pub mod lexer_tests {
     mod number_tests;
     mod position_tests;
@@ -16,7 +16,7 @@ pub mod lexer_tests {
         str_pool::StrPool,
     };
 
-    // Разбирает исходный код и возвращает найденные токены и ошибки.
+    // Parses the source code and returns the found tokens and errors.
     pub fn tokenize(src: &str) -> (Vec<Token>, Vec<LexerError>) {
         let source = SourceCode::new(src.to_string());
         let mut str_pool = StrPool::from_source(&source);
@@ -27,7 +27,7 @@ pub mod lexer_tests {
         (tokens, lexer.errors)
     }
 
-    // Разбирает исходный код и возвращает только виды токенов.
+    // Parses the source code and returns only the token kinds.
     pub fn kinds(src: &str) -> Vec<TokenKind> {
         tokenize(src)
             .0

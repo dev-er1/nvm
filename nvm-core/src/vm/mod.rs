@@ -1,14 +1,13 @@
-//! # Виртуальная машина NVM
+//! # NVM virtual machine
 //!
-//! В этом модуле определена виртуальная машина **NVM**, а также её
-//! основные компоненты.
+//! This module defines the **NVM** virtual machine and its main components.
 //!
-//! ## Содержимое модуля
+//! ## Module contents
 //!
-//! - [`memory`] — память виртуальной машины;
-//! - [`register_file`] — банк регистров;
-//! - [`err`] — ошибки ВМ;
-//! - [`executer`] — исполнитель инструкций на основе Direct Threading.
+//! - [`memory`] — the virtual machine's memory;
+//! - [`register_file`] — the register bank;
+//! - [`err`] — VM errors;
+//! - [`executer`] — the instruction executor based on Direct Threading.
 pub mod err;
 pub mod executer;
 pub mod memory;
@@ -19,34 +18,34 @@ use crate::{
     vm::{memory::NVMMemory, register_file::RegisterFile},
 };
 
-/// # Виртуальная машина NVM
+/// # NVM virtual machine
 ///
-/// Представляет собой полное состояние виртуальной машины.
+/// Represents the full state of the virtual machine.
 ///
-/// Содержит:
-/// - программу, выполняемую виртуальной машиной;
-/// - память;
-/// - банк регистров;
-/// - стек вызовов.
+/// Contains:
+/// - the program executed by the VM;
+/// - the memory;
+/// - the register bank;
+/// - the call stack.
 pub struct NVM {
-    /// Выполняемая программа.
+    /// The program to be executed.
     pub program: Vec<Instruction>,
 
-    /// Память виртуальной машины.
+    /// The virtual machine's memory.
     pub memory: NVMMemory,
 
-    /// Хранилище регистров.
+    /// The register file.
     pub registers: RegisterFile,
 
-    /// Стек вызовов для `CALL`/`RET`.
+    /// The call stack for `CALL`/`RET`.
     pub call_stack: Vec<usize>,
 }
 
 impl NVM {
-    /// Создаёт новую виртуальную машину.
+    /// Creates a new virtual machine.
     ///
-    /// Программа инициализируется пустой, память имеет указанный размер,
-    /// а все регистры заполняются значениями по умолчанию.
+    /// The program is initialized empty, the memory has the given size,
+    /// and all registers are filled with default values.
     pub fn new(memory_size: usize) -> Self {
         Self {
             program: Vec::new(),
@@ -56,9 +55,9 @@ impl NVM {
         }
     }
 
-    /// Создаёт виртуальную машину с указанной программой и памятью.
+    /// Creates a virtual machine with the given program and memory.
     ///
-    /// Хранилище регистров инициализируется значениями по умолчанию.
+    /// The register file is initialized with default values.
     pub fn from_program_and_memory(program: Vec<Instruction>, memory: NVMMemory) -> Self {
         Self {
             program,

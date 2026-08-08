@@ -1,40 +1,40 @@
 // nvm-cli/src/cmd.rs
 //
-//! Определение команд.
+//! Definition of the commands.
 
 pub enum Command {
     // `nvm help [--info <command>] [--dont-show-banner]`
     Help {
-        /// Если `true` — не показывать баннер.
+        /// If `true` — do not show the banner.
         dont_show_banner: bool,
 
-        /// Команда, о которой нужно вывести информацию.
+        /// The command to show information about.
         cmd: Option<String>,
     },
 
     /// `nvm run <file> [--time] [--memory <bytes]`
     Run {
-        /// Путь к файлу, который нужно выполнить.
+        /// Path to the file to execute.
         file: String,
 
-        /// Если `true` — выводить время выполнения.
+        /// If `true` — print the execution time.
         time: bool,
 
-        /// Сколько выделить памяти на выполнение программы.
+        /// How much memory to allocate for program execution.
         memory: Option<usize>,
     },
 
     /// `nvm compile <file> [--output <path>] [--time]`
     Compile {
-        /// Путь к файлу NVM Assembly (.na).
+        /// Path to the NVM Assembly (.na) file.
         file: String,
 
-        /// Куда записать результирующий .nb файл.
+        /// Where to write the resulting .nb file.
         ///
-        /// Если `None` — рядом с исходным файлом.
+        /// If `None` — next to the source file.
         output: Option<String>,
 
-        /// Если `true` — выводить время компиляции.
+        /// If `true` — print the compilation time.
         time: bool,
     },
 
@@ -42,8 +42,8 @@ pub enum Command {
     Version,
 }
 
-// `*Info` и `const COMMAND` нужны только для вывода информации об
-// любой команде.
+// `*Info` and `const COMMAND` are needed only to display information about
+// any command.
 
 #[derive(Debug, Clone, Copy)]
 pub struct FlagInfo {

@@ -1,7 +1,5 @@
-// nvm-core/benches/vm/sieve.rs
-//
-// Решето Эратосфена до 1 000 000: работа с байтовой памятью (STORE8/LOAD8),
-// вложенные циклы и счёт простых чисел.
+// The Sieve of Eratosthenes up to 1 000 000: byte-memory work (STORE8/LOAD8),
+// nested loops and prime counting.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};

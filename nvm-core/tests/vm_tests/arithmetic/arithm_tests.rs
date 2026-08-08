@@ -1,4 +1,4 @@
-// Тесты на всю арифметику: дробную и целочисленную.
+// Tests for all arithmetic: floating-point and integer.
 use nvm_core::{
     isa::{
         instruction::Instruction,

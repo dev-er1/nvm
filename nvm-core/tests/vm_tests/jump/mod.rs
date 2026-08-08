@@ -1,4 +1,4 @@
-// Тесты на прыжки.
+// Tests for jumps.
 pub mod call_tests;
 pub mod jmp_tests;
 pub mod jnz_tests;

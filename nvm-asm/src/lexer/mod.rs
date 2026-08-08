@@ -1,11 +1,11 @@
-//! # Лексер (лексический анализ)
+//! # Lexer (lexical analysis)
 //!
-//! Лексер — это программа, которая превращает код на любом языке
-//! в поток токенов.
+//! A lexer is a program that turns code in any language
+//! into a stream of tokens.
 //!
-//! ## Содержимое модуля
-//! - [`token`] — перечисление токенов и структура токена.
-//! - [`err`] — перечисление ошибок и структура одной ошибки.
+//! ## Module contents
+//! - [`token`] — the token enumeration and the token structure.
+//! - [`err`] — the error enumeration and the structure of a single error.
 pub mod err;
 pub mod token;
 
@@ -20,25 +20,25 @@ use crate::{
 };
 use nvm_core::isa::{opcode::OperationCode, register::Register};
 
-/// Лексер исходного кода.
+/// Lexer of the source code.
 ///
-/// Разбирает исходный код по одному символу, собирая найденные
-/// токены в [`tokens`](Self::tokens), а ошибки — в
+/// Parses the source code one character at a time, collecting the found
+/// tokens into [`tokens`](Self::tokens) and errors into
 /// [`errors`](Self::errors).
 pub struct Lexer<'a> {
-    /// Исходный код, который разбирает лексер.
+    /// The source code that the lexer parses.
     pub src: SourceCode,
 
-    /// Пул строк, в который интернируются идентификаторы (метки).
+    /// String pool into which identifiers (labels) are interned.
     pub str_pool: &'a mut StrPool,
 
-    /// Все найденные токены.
+    /// All tokens found.
     pub tokens: Vec<Token>,
 
-    /// Ошибки, обнаруженные при разборе.
+    /// Errors found during tokenization.
     pub errors: Vec<LexerError>,
 
-    /// Текущая позиция байта в исходном коде.
+    /// Current byte position in the source code.
     index: usize,
 }
 
@@ -53,15 +53,14 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Разбирание исходного кода на токены.
+    /// Parses the source code into tokens.
     ///
-    /// Токены складываются в [`tokens`](Self::tokens), а ошибки —
-    /// в [`errors`](Self::errors). В конце потока всегда добавляется
-    /// токен [`TokenKind::End`], означающий конец исходного кода.
+    /// Tokens are collected into [`tokens`](Self::tokens) and errors
+    /// into [`errors`](Self::errors). A [`TokenKind::End`] token,
+    /// meaning the end of the source code, is always added at the end of the stream.
     pub fn tokenize(&mut self) -> &[Token] {
         loop {
-            // Пропускаем пробелы и комментарии, чтобы не плодить
-            // лишние токены.
+            // Skip whitespace and comments.
             self.skip_trivia();
 
             if self.index >= self.src.source.len() {
@@ -77,11 +76,11 @@ impl<'a> Lexer<'a> {
         &self.tokens
     }
 
-    /// Разбирание одного токена, начиная с текущей позиции.
+    /// Parses a single token starting from the current position.
     ///
-    /// Если встречен символ, который не является частью ни одного
-    /// токена, в [`errors`](Self::errors) добавляется ошибка,
-    /// а сам символ пропускается.
+    /// If a character that is not part of any token is encountered,
+    /// an error is added to [`errors`](Self::errors),
+    /// and the character itself is skipped.
     fn next_token(&mut self) {
         let start = self.index;
         let first = self.bump().expect("called only if the symbol is present");
@@ -94,11 +93,11 @@ impl<'a> Lexer<'a> {
             b']' => TokenKind::EndingSquareBracket,
             b'*' => TokenKind::Asterisk,
 
-            // Точка перед цифрой начинает дробное число (.5).
+            // A dot before a digit starts a fractional number (.5).
             b'.' if self.is_digit_peek() => return self.lex_number(start, true),
             b'.' => TokenKind::Dot,
 
-            // Знак перед цифрой начинает число с указанным знаком (-5).
+            // A sign before a digit starts a number with the given sign (-5).
             b'+' | b'-' if self.is_digit_peek() => return self.lex_number(start, false),
             b'+' => TokenKind::Plus,
             b'-' => TokenKind::Minus,
@@ -117,9 +116,9 @@ impl<'a> Lexer<'a> {
         self.tokens.push(Token::new(pos, kind));
     }
 
-    /// Пропускает пробелы (кроме переносов строк) и комментарии.
+    /// Skips whitespace (except line breaks) and comments.
     ///
-    /// Комментарий начинается с символа `;` и длится до конца строки.
+    /// A comment starts with the `;` character and lasts until the end of the line.
     fn skip_trivia(&mut self) {
         loop {
             match self.peek() {
@@ -127,8 +126,8 @@ impl<'a> Lexer<'a> {
                     self.bump();
                 }
                 Some(b';') => {
-                    // Пропускаем всё до переноса строки, сам перенос
-                    // не трогаем: он станет токеном Newline.
+                    // Skip everything up to the line break; the line break itself
+                    // is left alone: it will become a Newline token.
                     while let Some(byte) = self.peek() {
                         if byte == b'\n' {
                             break;
@@ -141,15 +140,15 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Разбирает слово: регистр, мнемонику или идентификатор.
+    /// Parses a word: a register, a mnemonic, or an identifier.
     ///
-    /// Слово начинается с буквы или подчёркивания. Первым символом
-    /// уже считан сам `start`.
+    /// A word starts with a letter or an underscore. The first character
+    /// has already been consumed as `start`.
     ///
-    /// Классификация слова происходит в следующем порядке:
-    /// 1. `R0`..`R255` — регистр;
-    /// 2. известная мнемоника — [`TokenKind::Mnemonic`];
-    /// 3. всё остальное — идентификатор (например, метка).
+    /// The word is classified in the following order:
+    /// 1. `R0`..`R255` — a register;
+    /// 2. a known mnemonic — [`TokenKind::Mnemonic`];
+    /// 3. everything else — an identifier (for example, a label).
     fn lex_word(&mut self, start: usize) {
         while self
             .peek()
@@ -179,20 +178,20 @@ impl<'a> Lexer<'a> {
         self.tokens.push(Token::new(pos, kind));
     }
 
-    /// Разбирает число: целое или с плавающей точкой.
+    /// Parses a number: an integer or a floating-point one.
     ///
-    /// Первым символом (цифра, знак или точка) уже считан в
-    /// `start`. Дробная часть распознаётся только если за точкой
-    /// следует цифра, иначе точка становится отдельным токеном.
+    /// The first character (a digit, a sign, or a dot) has already been
+    /// consumed into `start`. A fractional part is recognized only if a
+    /// digit follows the dot; otherwise the dot becomes a separate token.
     fn lex_number(&mut self, start: usize, leading_dot: bool) {
         let mut is_float = leading_dot;
 
-        // Целая часть.
+        // Integer part.
         while self.is_digit_peek() {
             self.bump();
         }
 
-        // Дробная часть.
+        // Fractional part.
         if self.peek() == Some(b'.') && self.peek_n(1).is_some_and(|b| b.is_ascii_digit()) {
             is_float = true;
             self.bump();
@@ -201,7 +200,7 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        // Экспонента: "e" или "E" с необязательным знаком.
+        // Exponent: "e" or "E" with an optional sign.
         if matches!(self.peek(), Some(b'e') | Some(b'E')) {
             let mut offset = 1;
             if matches!(self.peek_n(offset), Some(b'+') | Some(b'-')) {
@@ -243,39 +242,39 @@ impl<'a> Lexer<'a> {
         self.tokens.push(Token::new(pos, kind));
     }
 
-    /// Добавляет ошибку лексического анализа в [`errors`](Self::errors).
+    /// Adds an error to [`errors`](Self::errors).
     fn push_error(&mut self, start: usize, kind: LexerErrorKind) {
         let pos = Position::new(start as u32, self.index as u32);
         self.errors.push(LexerError::new(kind, pos));
     }
 
-    /// Возвращает байт на текущей позиции, не сдвигая её.
+    /// Returns the byte at the current position without moving it.
     fn peek(&self) -> Option<u8> {
         self.src.source.as_bytes().get(self.index).copied()
     }
 
-    /// Возвращает байт на `offset` байтов впереди текущей позиции.
+    /// Returns the byte `offset` bytes ahead of the current position.
     fn peek_n(&self, offset: usize) -> Option<u8> {
         self.src.source.as_bytes().get(self.index + offset).copied()
     }
 
-    /// Возвращает байт на текущей позиции и сдвигает позицию вперёд.
+    /// Returns the byte at the current position and moves the position forward.
     fn bump(&mut self) -> Option<u8> {
         let byte = self.peek()?;
         self.index += 1;
         Some(byte)
     }
 
-    /// Является ли текущий байт цифрой.
+    /// Whether the current byte is a digit.
     fn is_digit_peek(&self) -> bool {
         matches!(self.peek(), Some(b'0'..=b'9'))
     }
 }
 
-/// Является ли слово именем регистра: `R`, за которым идут цифры.
+/// Whether the word is a register name: `R` followed by digits.
 ///
-/// Например, `R0` — да, `R256` — по форме да, но с недопустимым
-/// номером, `r` и `r0x` — нет.
+/// For example, `R0` — yes, `R256` — in form yes, but with an invalid
+/// number, `r` and `r0x` — no.
 fn is_register_name(text: &str) -> bool {
     text.len() > 1
         && matches!(text.as_bytes()[0], b'r' | b'R')

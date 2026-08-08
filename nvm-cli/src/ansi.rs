@@ -1,6 +1,6 @@
 // nvm-cli/src/ansi.rs
 //
-//! Макрос `ansiprint` и проверка на поддержку `ANSI`-последовательностей.
+//! The `ansiprint` macro and a check for `ANSI` sequence support.
 use std::io::IsTerminal;
 use std::sync::OnceLock;
 
@@ -83,8 +83,8 @@ pub fn unicode_supported() -> bool {
             return false;
         }
 
-        // Windows Terminal, ConEmu и современные Windows-консоли работают
-        // с Unicode напрямую.
+        // Windows Terminal, ConEmu and modern Windows consoles support
+        // Unicode natively.
         if cfg!(target_os = "windows") {
             return std::env::var("WT_SESSION").is_ok()
                 || std::env::var("ConEmuANSI")
@@ -93,7 +93,7 @@ pub fn unicode_supported() -> bool {
                 || std::env::var("TERM_PROGRAM").is_ok();
         }
 
-        // В Unix-подобных системах проверяем locale.
+        // On Unix-like systems we check the locale.
         let locale = std::env::var("LC_ALL")
             .or_else(|_| std::env::var("LC_CTYPE"))
             .or_else(|_| std::env::var("LANG"))

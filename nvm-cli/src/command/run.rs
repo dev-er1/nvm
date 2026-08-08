@@ -1,6 +1,6 @@
 // nvm-cli/src/command/run.rs
 //
-//! Исполнение команды `run`.
+//! Execution of the `run` command.
 use std::{io::Read, path::Path, time::Instant};
 
 use libnvm::{BytecodeSource, NVMAssembler, NVMError, NVMErrorKind, NVMl};
@@ -17,7 +17,7 @@ pub fn run(args: RunArguments) -> i32 {
     let start = Instant::now();
 
     let source = if args.file == "-" {
-        // Читаем байт-код из stdin.
+        // Read the bytecode from stdin.
         let mut bytes = Vec::new();
         if let Err(e) = std::io::stdin().read_to_end(&mut bytes) {
             report_error(NVMError::new(
@@ -29,7 +29,7 @@ pub fn run(args: RunArguments) -> i32 {
         }
         BytecodeSource::Bytes(bytes)
     } else if is_assembly(&args.file) {
-        // Файл NVM Assembly: компилируем в инструкции и выполняем.
+        // An NVM Assembly file: compile it into instructions and execute.
         let source = match std::fs::read_to_string(&args.file) {
             Ok(source) => source,
             Err(e) => {
@@ -76,14 +76,14 @@ pub fn run(args: RunArguments) -> i32 {
     0
 }
 
-/// Является ли файл исходником NVM Assembly (`.na`).
+/// Whether the file is an NVM Assembly source (`.na`).
 fn is_assembly(file: &str) -> bool {
     Path::new(file)
         .extension()
         .is_some_and(|ext| ext.eq_ignore_ascii_case("na"))
 }
 
-/// Выводит ошибку исполнения в том же стиле, что и остальные ошибки CLI.
+/// Prints an execution error in the same style as the other CLI errors.
 fn report_error(e: NVMError) {
     let e = NVMError::new(e.kind, e.instruction, ansi_supported());
     e.report();

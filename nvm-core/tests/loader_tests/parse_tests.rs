@@ -1,4 +1,4 @@
-// Тесты на успешный парсинг инструкций из `.nb`-файлов.
+// Tests on successful parsing of instructions from `.nb`-files.
 use nvm_core::isa::opcode::OperationCode;
 
 use super::*;
@@ -114,7 +114,7 @@ fn multiple_instructions_parsed_correctly() {
 
 #[test]
 fn ret_instruction() {
-    // RET = opcode 52 (0x34), 0 операндов
+    // RET = opcode 52 (0x34), 0 operands
     let bytes = vec![0x34, 0x00];
 
     let instructions = run_loader(make_nb(&bytes)).expect("expected successful parse");
@@ -197,7 +197,7 @@ fn large_immediate_value() {
 
 #[test]
 fn instruction_stream_ignores_trailing_data_until_next_opcode() {
-    // Инструкция за другой инструкцией без зазора.
+    // Instruction right after another instruction with no gap.
     let mut bytes = vec![];
     bytes.extend_from_slice(&move_reg_imm(0, 7));
     bytes.extend_from_slice(&move_reg_imm(1, 8));

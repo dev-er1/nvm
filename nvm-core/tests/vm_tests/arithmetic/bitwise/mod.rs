@@ -1,4 +1,4 @@
-// Тесты на побитовые операции.
+// Tests for bitwise operations.
 pub mod and_tests;
 pub mod not_tests;
 pub mod or_tests;

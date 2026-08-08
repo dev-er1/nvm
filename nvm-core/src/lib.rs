@@ -1,10 +1,10 @@
 //! # `nvm-core`
 //!
-//! Этот крейт — **ядро *NVM*** (***N**ot **V**irtual **M**achine*).
-//! Здесь находится:
-//! - [`isa`] — NVM *Instruction Set Architecture (**ISA**)*.
-//! - [`vm`] — сама виртуальная машина NVM.
-//! - [`loader`] — загрузчик файлов в формате NVM Bytecode (см. `docs/File-Format/FILE-FORMAT.ru.md`).
+//! This crate is the **core of *NVM*** (***N**ot **V**irtual **M**achine*).
+//! It contains:
+//! - [`isa`] — the NVM *Instruction Set Architecture (**ISA**)*.
+//! - [`vm`] — the NVM virtual machine itself.
+//! - [`loader`] — the loader of files in the NVM Bytecode format (see `docs/File-Format/FILE-FORMAT.ru.md`).
 pub mod error;
 pub mod isa;
 pub mod loader;

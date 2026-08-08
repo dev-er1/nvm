@@ -1,7 +1,5 @@
-// nvm-core/benches/vm/mandelbrot.rs
-//
-// Множество Мандельброта 200×200, до 64 итераций на точку:
-// вещественный цикл с условным выходом (FGT/JNZ) и запись байтами.
+// The Mandelbrot set, 200×200, up to 64 iterations per point:
+// a floating-point loop with a conditional exit (FGT/JNZ) and byte stores.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};

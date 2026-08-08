@@ -1,4 +1,4 @@
-// Тесты на `LOAD16`.
+// Tests for `LOAD16`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

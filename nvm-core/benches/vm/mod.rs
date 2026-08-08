@@ -1,12 +1,10 @@
-// nvm-core/benches/vm/mod.rs
+// Common components of the VM benchmarks: building programs, encoding
+// into the NVM Bytecode format (`Vec<u8>`) and running (loading + execution).
 //
-// Общие компоненты бенчмарков ВМ: построение программ, кодирование
-// в формат NVM Bytecode (`Vec<u8>`) и запуск (загрузка + исполнение).
-//
-// Каждый бенчмарк — отдельный файл в этом каталоге. Бенчмарк строится
-// как программа из `Instruction`, кодируется в байты `.nb`-формата
-// (без файлов — просто вектор), после чего замеряется полный цикл:
-// загрузка (транспиляция байтов в инструкции) + исполнение.
+// Each benchmark is a separate file in this directory. A benchmark is built
+// as a program of `Instruction`s, encoded into `.nb` format bytes
+// (no files — just a vector), after which the whole pipeline is measured:
+// loading (transpilation of bytes into instructions) + execution.
 use std::{collections::HashMap, hint::black_box};
 
 use nvm_core::{
@@ -21,15 +19,15 @@ use nvm_core::{
     vm::{NVM, memory::NVMMemory},
 };
 
-// ====== Постоянные для всех бенчмарков ======
+// ====== Constants shared by all benchmarks ======
 
-/// Номер регистра-указателя стека значений (используется рекурсивными бенчмарками).
+/// The register number of the value-stack pointer (used by the recursive benchmarks).
 pub const SP: u8 = 14;
 
-/// Размер памяти ВМ для бенчмарков (4 МиБ — хватает ситу sieve 1 000 000).
+/// The VM memory size for the benchmarks (4 MiB — enough for the sieve up to 1 000 000).
 pub const MEMORY: usize = 1 << 22;
 
-// ====== Бенчмарки (отдельный файл на каждый) ======
+// ====== Benchmarks (a separate file for each) ======
 
 pub mod ackermann;
 pub mod binary_trees;
@@ -43,23 +41,23 @@ pub mod sieve;
 pub mod spectral_norm;
 pub mod tak;
 
-// ====== Операнды и инструкции ======
+// ====== Operands and instructions ======
 
-/// Операнд-регистр.
+/// A register operand.
 pub fn reg(n: u8) -> Operand {
     Operand {
         kind: OperandKind::Register(Register(n)),
     }
 }
 
-/// Операнд-immediate.
+/// An immediate operand.
 pub fn imm(v: u64) -> Operand {
     Operand {
         kind: OperandKind::Immediate(v),
     }
 }
 
-/// Immediate из битов `f64` (константы с плавающей точкой).
+/// An immediate from the bits of an `f64` (floating-point constants).
 pub fn fimm(v: f64) -> Operand {
     imm(v.to_bits())
 }
@@ -100,12 +98,12 @@ pub fn i3(op: OperationCode, o1: Operand, o2: Operand, o3: Operand) -> Instructi
     }
 }
 
-// ====== Сборка программ с метками ======
+// ====== Assembling programs with labels ======
 
-/// Сборщик программы с именованными метками для переходов.
+/// A program assembler with named labels for jumps.
 ///
-/// `jump`/`call`/`jz`/`jnz` принимают имя метки; финальные адреса
-/// переходов вычисляются в [`Asm::finish`].
+/// `jump`/`call`/`jz`/`jnz` take a label name; the final jump addresses
+/// are resolved in [`Asm::finish`].
 pub struct Asm {
     code: Vec<Instruction>,
     labels: HashMap<String, usize>,
@@ -121,12 +119,12 @@ impl Asm {
         }
     }
 
-    /// Помечает текущую позицию именем.
+    /// Marks the current position with a name.
     pub fn label(&mut self, name: impl Into<String>) {
         self.labels.insert(name.into(), self.code.len());
     }
 
-    /// Добавляет инструкцию и возвращает её индекс.
+    /// Adds an instruction and returns its index.
     pub fn push(&mut self, instr: Instruction) -> usize {
         self.code.push(instr);
         self.code.len() - 1
@@ -156,7 +154,7 @@ impl Asm {
         self.fixups.push((idx, label.to_string(), 2));
     }
 
-    /// Разрешает переходы и возвращает программу.
+    /// Resolves the jumps and returns the program.
     pub fn finish(mut self) -> Vec<Instruction> {
         for (idx, label, slot) in self.fixups {
             let target = *self
@@ -174,13 +172,13 @@ impl Asm {
     }
 }
 
-// ====== Кодирование и запуск ======
+// ====== Encoding and running ======
 
-/// Кодирует программу в байты формата NVM Bytecode (`Vec<u8>`).
+/// Encodes the program into NVM Bytecode format bytes (`Vec<u8>`).
 pub fn encode_to_nb(program: &[Instruction]) -> Vec<u8> {
     let mut bytes = Vec::new();
 
-    // Magic + минимальная версия NVM.
+    // Magic + the minimum NVM version.
     bytes.extend_from_slice(b"NVMBC");
     for part in NVM_VERSION.split('.').map(|p| p.parse::<u16>().unwrap()) {
         bytes.extend_from_slice(&part.to_le_bytes());
@@ -209,8 +207,8 @@ pub fn encode_to_nb(program: &[Instruction]) -> Vec<u8> {
     bytes
 }
 
-/// Загружает байты в формате `.nb` (транспиляция в инструкции) и исполняет программу.
-/// Возвращает ВМ с результатом.
+/// Loads bytes in the `.nb` format (transpilation into instructions) and executes the program.
+/// Returns the VM with the result.
 pub fn load_and_run_vm(bytes: &[u8], memory_size: usize) -> NVM {
     let instructions = NVMLoader::new(bytes.to_vec())
         .transpile()
@@ -220,7 +218,7 @@ pub fn load_and_run_vm(bytes: &[u8], memory_size: usize) -> NVM {
     vm
 }
 
-/// Загружает байты в формате`.nb` и исполняет программу (замеряемая часть).
+/// Loads bytes in the `.nb` format and executes the program (the measured part).
 pub fn load_and_run(bytes: &[u8], memory_size: usize) {
     let vm = load_and_run_vm(bytes, memory_size);
     black_box(vm);

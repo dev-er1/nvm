@@ -1,4 +1,4 @@
-// Тесты на `FLT`, `FLE`, `FGT`, `FGE`.
+// Tests for `FLT`, `FLE`, `FGT`, `FGE`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::compare::get_float;

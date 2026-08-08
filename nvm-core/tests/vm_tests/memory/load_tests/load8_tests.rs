@@ -1,4 +1,4 @@
-// Тесты на `LOAD8`.
+// Tests for `LOAD8`.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::{NVM, err::VMErrorKind},

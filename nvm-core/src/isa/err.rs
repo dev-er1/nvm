@@ -1,22 +1,25 @@
 // nvm-core/src/isa/err.rs
 //
-//! Перечисление видов ошибок и структура одной ошибки
-//! для этого модуля.
+//! The enumeration of error kinds and the structure of a single error
+//! for this module.
 use std::{
     error,
     fmt::{self, Display, Formatter},
 };
 
-/// Виды ошибок.
+/// Error kinds.
 #[derive(Debug)]
 pub enum ISAErrorKind {
-    /// Неизвестный опкод.
+    /// An unknown opcode.
     UnknownOperationCode(String),
-    /// Неожиданный конец данных.
+
+    /// Unexpected end of data.
     UnexpectedEndOfData { expected: usize, found: usize },
-    /// Некорректное количество операндов (> 3).
+
+    /// Invalid operand count (> 3).
     InvalidOperandCount { count: u8 },
-    /// Неизвестный тег операнда.
+
+    /// Unknown operand tag.
     UnknownOperandTag { byte: u8 },
 }
 
@@ -42,7 +45,7 @@ impl Display for ISAErrorKind {
 
 #[derive(Debug)]
 pub struct ISAError {
-    pub kind: ISAErrorKind, // Здесь бы могла быть другая информация.
+    pub kind: ISAErrorKind,
 }
 
 impl ISAError {

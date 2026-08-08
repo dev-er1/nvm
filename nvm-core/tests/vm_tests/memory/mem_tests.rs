@@ -1,4 +1,4 @@
-// Тест на память ВМ.
+// Test for VM memory.
 use nvm_core::{
     isa::{instruction::Instruction, opcode::OperationCode, register::Register},
     vm::NVM,

@@ -1,4 +1,4 @@
-// Тесты на `SREM`.
+// Tests for `SREM`.
 use nvm_core::isa::opcode::OperationCode;
 
 use crate::vm_tests::arithmetic::integer_arithmetic::get_result;

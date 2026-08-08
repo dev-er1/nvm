@@ -1,6 +1,6 @@
 // nvm-asm/tests/parser_tests.rs
 //
-// Интеграционные тесты парсера.
+// Integration tests for the parser.
 pub mod parser_tests {
     mod error_tests;
     mod statement_tests;
@@ -12,7 +12,7 @@ pub mod parser_tests {
     use nvm_asm::src::SourceCode;
     use nvm_asm::str_pool::StrPool;
 
-    // Токенизирует и разбирает исходный код, возвращает AST и ошибки.
+    // Tokenizes and parses the source code, returning the AST and errors.
     pub fn parse(src: &str) -> (AST, Vec<ParserError>) {
         let source = SourceCode::new(src.to_string());
         let mut str_pool = StrPool::from_source(&source);
@@ -25,7 +25,7 @@ pub mod parser_tests {
         (ast, parser.errors)
     }
 
-    // Первая инструкция программы.
+    // The first instruction of the program.
     pub fn first_instr(ast: &AST) -> &Instr {
         match &ast.program[0] {
             Statement::Instruction { instruction, .. } => instruction,

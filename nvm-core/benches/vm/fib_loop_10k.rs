@@ -1,13 +1,11 @@
-// nvm-core/benches/vm/fib_loop_10k.rs
-//
-// Итеративный Фибоначчи: 10 000 итераций в цикле.
+// Iterative Fibonacci: 10 000 iterations in a loop.
 use criterion::Criterion;
 
 use nvm_core::isa::{instruction::Instruction, opcode::OperationCode as Op};
 
 use super::*;
 
-/// Цикл `a, b = b, a + b` (обратные переходы JZ/JMP).
+/// The loop `a, b = b, a + b` (backward jumps JZ/JMP).
 fn program(n: u64) -> Vec<Instruction> {
     let mut asm = Asm::new();
     asm.push(i2(Op::MOVE, reg(0), imm(0)));

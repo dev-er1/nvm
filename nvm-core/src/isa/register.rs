@@ -1,21 +1,21 @@
 // nvm-core/src/isa/register.rs
 //
-//! # Регистры NVM
+//! # NVM registers
 //!
-//! В этом модуле определён тип регистра виртуальной машины.
+//! This module defines the register type of the virtual machine.
 //!
-//! Регистр представляет собой идентификатор одного из 255
-//! регистров общего назначения. Сам регистр **не хранит значение** —
-//! он лишь указывает, к какому регистру необходимо обратиться.
+//! A register is an identifier of one of the 255 general-purpose
+//! registers. The register itself **does not store a value** —
+//! it only indicates which register to access.
 //!
-//! Значения регистров являются частью состояния виртуальной машины
-//! и хранятся отдельно.
+//! Register values are part of the virtual machine state
+//! and are stored separately.
 use std::fmt::{self, Display, Formatter};
 
-/// Идентификатор регистра.
+/// The register identifier.
 ///
-/// В NVM доступно 255 регистров, поэтому для хранения их номера
-/// достаточно одного байта.
+/// NVM provides 255 registers, so one byte is enough
+/// to store their number.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy)]
 pub struct Register(pub u8);
