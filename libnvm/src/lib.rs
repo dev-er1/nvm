@@ -7,7 +7,7 @@
 //!   [`BytecodeSource`] and executes it;
 //! - [`NVMAssembler`] — compilation of NVM Assembly into instructions
 //!   and into bytecode (`.nb`).
-use std::path::PathBuf;
+use std::{io::IsTerminal, path::PathBuf, sync::OnceLock};
 
 use nvm_asm::{codegen, lexer::Lexer, parser::Parser, src::SourceCode, str_pool::StrPool};
 use nvm_core::{
@@ -130,7 +130,7 @@ impl NVMAssembler {
             return Err(NvmASMError::error(
                 err.pos,
                 NvmASMErrorKind::LexerError(err.clone()),
-                false,
+                ansi_supported(),
                 None,
                 source,
             ));
@@ -174,4 +174,37 @@ impl NVMAssembler {
 
         Ok(codegen::encoder::encode(&instructions))
     }
+}
+
+fn ansi_supported() -> bool {
+    static SUPPORTED: OnceLock<bool> = OnceLock::new();
+    *SUPPORTED.get_or_init(|| {
+        if !std::io::stdout().is_terminal() && !std::io::stderr().is_terminal() {
+            return false;
+        }
+        if std::env::var_os("NO_COLOR").is_some() {
+            return false;
+        }
+        if cfg!(target_os = "windows") {
+            return std::env::var("WT_SESSION").is_ok()
+                || std::env::var("ConEmuANSI")
+                    .map(|v| v == "ON")
+                    .unwrap_or(false)
+                || std::env::var("TERM_PROGRAM").is_ok();
+        }
+        match std::env::var("TERM") {
+            Ok(term) => {
+                let t = term.to_lowercase();
+                t != "dumb"
+                    && (t.contains("color")
+                        || t.contains("xterm")
+                        || t.contains("256")
+                        || t.contains("linux")
+                        || t.contains("ansi")
+                        || t.contains("kitty")
+                        || t.contains("alacritty"))
+            }
+            Err(_) => false,
+        }
+    })
 }
