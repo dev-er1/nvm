@@ -24,6 +24,7 @@ pub fn parse() -> Result<Command, CLIError> {
         "help" => parse_help(&raw),
         "run" => parse_run(&raw),
         "compile" => parse_compile(&raw),
+        "check" => parse_check(&raw),
         "version" => Ok(Command::Version),
         cmd => Err(CLIError::new(
             CLIErrorKind::UnknownCommand(cmd.to_string()),
@@ -128,6 +129,43 @@ fn parse_compile(args: &[String]) -> Result<Command, CLIError> {
     Ok(Command::Compile {
         file: file.to_string(),
         output: matches.value("output").map(str::to_owned),
+        time: matches.flag("time"),
+    })
+}
+
+fn parse_check(args: &[String]) -> Result<Command, CLIError> {
+    let matches = ArgumentParser::new()
+        .flag("time", &["--time"])
+        .parse(argparser::str::Source::from_iter(args.iter().cloned()));
+
+    if let Some(err) = matches.errors.clone().first() {
+        return Err(CLIError::new(
+            error_kind(err),
+            Some(args.to_vec()),
+            find_arg_index(args, offending_token(err)).map(|index| vec![index]),
+        ));
+    }
+
+    // `positional()[0]` is always the command name ("check"), since we parse
+    // the full arguments. The file, therefore, is at index `1`.
+    let file = matches.get(1).ok_or_else(|| {
+        CLIError::new(
+            CLIErrorKind::MissingValueForCommand("check".to_string()),
+            Some(args.to_vec()),
+            Some(vec![0]),
+        )
+    })?;
+
+    if let Some(extra) = matches.get(2) {
+        return Err(CLIError::new(
+            CLIErrorKind::UnexpectedArgument(extra.to_string()),
+            Some(args.to_vec()),
+            find_arg_index(args, extra).map(|index| vec![index]),
+        ));
+    }
+
+    Ok(Command::Check {
+        file: file.to_string(),
         time: matches.flag("time"),
     })
 }

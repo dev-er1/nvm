@@ -1,4 +1,5 @@
 //! This module contains the executors of [`Command`].
+pub mod check;
 pub mod compile;
 pub mod help;
 pub mod run;
@@ -6,7 +7,7 @@ pub mod run;
 use crate::{
     ansiprint,
     cmd::Command,
-    command::{compile::CompileArguments, help::HelpArguments, run::RunArguments},
+    command::{check::CheckArguments, compile::CompileArguments, help::HelpArguments, run::RunArguments},
 };
 
 use libnvm::NVM_VERSION;
@@ -24,6 +25,7 @@ pub fn route(cmd: Command) -> i32 {
         Command::Compile { file, output, time } => {
             compile::compile(CompileArguments { file, output, time })
         }
+        Command::Check { file, time } => check::check(CheckArguments { file, time }),
         Command::Version => {
             ansiprint!("\x1b[1mv{NVM_VERSION}\x1b[0m");
             0

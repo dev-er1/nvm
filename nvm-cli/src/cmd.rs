@@ -38,6 +38,15 @@ pub enum Command {
         time: bool,
     },
 
+    /// `nvm check <file> [--time]`
+    Check {
+        /// Path to the NVM Assembly (.na) file.
+        file: String,
+
+        /// If `true` — print the check time.
+        time: bool,
+    },
+
     /// `nvm version`
     Version,
 }
@@ -102,6 +111,17 @@ pub const COMMAND: &[CommandInfo] = &[
             FlagInfo {
                 usage: "--time",
                 description: "Show compilation time.",
+            },
+        ],
+    },
+    CommandInfo {
+        name: "check",
+        usage: "check <file>",
+        description: "Check an NVM Assembly (.na) file for errors.",
+        flags: &[
+            FlagInfo {
+                usage: "--time",
+                description: "Show check time.",
             },
         ],
     },
