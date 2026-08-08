@@ -115,8 +115,8 @@ fn label_after_last_instruction() {
 
     assert_eq!(program.len(), 1);
     assert!(matches!(program[0].opcode, OperationCode::JMP));
-// The label is after the final — the jump targets an index equal to the program length
-// (such a jump terminates execution).
+    // The label is after the final — the jump targets an index equal to the program length
+    // (such a jump terminates execution).
     assert_operand_eq(program[0].operand1, imm(1));
 }
 

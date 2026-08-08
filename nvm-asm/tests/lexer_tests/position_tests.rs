@@ -105,8 +105,8 @@ fn positions_after_an_error_continue() {
 
 #[test]
 fn non_ascii_bytes_are_reported_per_byte() {
-// The lexer works with ASCII only: each byte of a UTF-8
-// sequence is a separate error on its own byte.
+    // The lexer works with ASCII only: each byte of a UTF-8
+    // sequence is a separate error on its own byte.
     let (tokens, errors) = tokenize("я");
 
     assert_eq!(errors.len(), 2);

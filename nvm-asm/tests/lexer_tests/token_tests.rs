@@ -84,8 +84,8 @@ fn unknown_words_become_identifiers() {
 
 #[test]
 fn words_starting_with_r_are_not_always_registers() {
-// "result" starts with the letter r but not a digit, and a lone "r"
-// has no number at all — both are identifiers.
+    // "result" starts with the letter r but not a digit, and a lone "r"
+    // has no number at all — both are identifiers.
     for text in ["result", "r"] {
         let (tokens, errors) = tokenize(text);
 

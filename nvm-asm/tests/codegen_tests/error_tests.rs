@@ -58,8 +58,8 @@ fn duplicate_label_message_contains_label_name() {
 
 #[test]
 fn duplicate_label_is_checked_before_undefined_reference() {
-// The duplicate is detected in the first pass and overrides
-// the undefined reference in the second.
+    // The duplicate is detected in the first pass and overrides
+    // the undefined reference in the second.
     let err = codegen("a:\nJMP b\na:").expect_err("duplicate label must fail");
 
     assert!(matches!(err.kind, CodegenErrorKind::DuplicateLabel { .. }));
@@ -123,8 +123,8 @@ fn duplicate_label_on_adjacent_lines_is_reported() {
 
 #[test]
 fn error_on_duplicate_label_then_reference_to_undefined_keeps_first_position() {
-// The duplicate-label error in the first pass has the position of the
-// second declaration, even if an undefined reference follows.
+    // The duplicate-label error in the first pass has the position of the
+    // second declaration, even if an undefined reference follows.
     let err = codegen("a:\nJMP b\na:\nJMP c").expect_err("duplicate label must fail");
 
     assert!(matches!(err.kind, CodegenErrorKind::DuplicateLabel { .. }));
