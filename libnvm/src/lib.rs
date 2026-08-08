@@ -145,7 +145,7 @@ impl NVMAssembler {
             return Err(NvmASMError::error(
                 err.position,
                 NvmASMErrorKind::ParserError(err.clone()),
-                false,
+                ansi_supported(),
                 None,
                 source,
             ));
@@ -157,7 +157,7 @@ impl NVMAssembler {
             NvmASMError::error(
                 err.position,
                 NvmASMErrorKind::CodegenError(err),
-                false,
+                ansi_supported(),
                 None,
                 source,
             )
